@@ -1,8 +1,8 @@
 Package: statgenSTA
 Type: Package
 Title: Single Trial Analysis (STA) of Field Trials
-Version: 1.0.2
-Date: 2020-01-09
+Version: 1.0.3
+Date: 2020-02-18
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
@@ -50,7 +50,7 @@ Authors@R: c(person(given = "Bart-Jan",
 Description: Phenotypic analysis of field trials using mixed models with and 
     without spatial components. One of a series of statistical genetic packages 
     for streamlining the analysis of typical plant breeding experiments developed
-    by Biometris.
+    by Biometris.    
     Some functions have been created to be used in conjunction with the R 
     package 'asreml' for the 'ASReml' software, which can be obtained upon 
     purchase from 'VSN' international (<http://www.vsni.co.uk/software/asreml-r>). 
@@ -60,13 +60,14 @@ LazyData: true
 RoxygenNote: 7.0.2
 Depends: R (>= 3.3)
 Imports: emmeans, ggplot2 (>= 3.0), ggrepel, gridExtra, knitr, lme4,
-        mapproj, maps, methods, qtl, reshape2, scales, SpATS (>=
-        1.0-10), xtable
+        mapproj, maps, qtl, scales, SpATS (>= 1.0-10), xtable
 Suggests: asreml(>= 3.0), rmarkdown, testthat, tibble
 SystemRequirements: pdflatex
 VignetteBuilder: knitr
+URL: https://github.com/Biometris/statgenSTA/
+BugReports: https://github.com/Biometris/statgenSTA/issues
 NeedsCompilation: no
-Packaged: 2020-01-09 09:05:07 UTC; rossu027
+Packaged: 2020-02-18 12:47:06 UTC; rossu027
 Author: Bart-Jan van Rossum [aut, cre],
   Fred van Eeuwijk [ctb] (<https://orcid.org/0000-0003-3672-2921>),
   Martin Boer [ctb],
@@ -80,4 +81,4 @@ Author: Bart-Jan van Rossum [aut, cre],
   Choazhi Zheng [ctb] (<https://orcid.org/0000-0001-6030-3933>)
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2020-01-14 11:30:02 UTC
+Date/Publication: 2020-02-18 14:10:02 UTC

@@ -554,9 +554,9 @@ print.summary.TD <- function(x, ...) {
 #'
 #' Plotting function for objects of class TD. Plots either the layout of the
 #' different trials within the TD object or locates the trials on a map. Also a
-#' boxplot can be made for selected traits and trials and a plot of correlations
-#' between trials. A detailed description and optional extra parameters of the
-#' different plots is given in the sections below.
+#' boxplot can be made for selected traits and trials, a plot of correlations
+#' between trials and a scatter plot matrix. A detailed description and optional
+#' extra parameters of the different plots is given in the sections below.
 #'
 #' @section Layout Plot:
 #' Plots the layout of the selected trials (all available trials by default).
@@ -587,7 +587,8 @@ print.summary.TD <- function(x, ...) {
 #' which the trials are located will be plotted on a single map and the
 #' location of the trials will be indicated on this map. The actual plot is
 #' made using ggplot, but for getting the data for the borders of the countries
-#' the maps package is needed. Extra parameter options:
+#' the maps package is needed.\cr
+#' Extra parameter options:
 #' \describe{
 #' \item{minLatRange}{A positive numerical value indicating the minimum range
 #' (in degrees) for the latitude on the plotted map. Defaults to 10.}
@@ -617,6 +618,24 @@ print.summary.TD <- function(x, ...) {
 #' computing correlations. The order of the trials in the heatmap is determined
 #' by clustering them.
 #'
+#' @section Scatter Plot:
+#' Draws a scatter plot matrix per selected trait. If genotypes are replicated
+#' within trials genotypic means are taken before plotting. The lower left of
+#' the matix contains scatter plots between trials. The diagonal contains
+#' histograms of the data per trial.\cr
+#' Extra parameter options:
+#' \describe{
+#' \item{colorBy}{A character string indicating a column in \code{TD} by which
+#' the genotypes in the scatter plots are colored.}
+#' \item{trialOrder}{A character vector indicating the order of the trials in
+#' the plot matrix (left to right and top to bottom). This vector should be a
+#' permutation of all trials plotted.}
+#' \item{addCorr}{A character string indicating the position of the correlation
+#' diplayed in each plot, either "tl" for top left, "tr", for top right, "bl"
+#' for bottom left or "br" for bottom right. If \code{NULL}, the default, then
+#' no correlation is added to the plot.}
+#' }
+#'
 #' @param x An object of class TD.
 #' @param ... Extra plot options. Described per plotType in their respective
 #' section.
@@ -630,8 +649,6 @@ print.summary.TD <- function(x, ...) {
 #' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
 #' @family functions for TD objects
-#'
-#' @import ggplot2
 #'
 #' @examples
 #' data("wheatChl")
@@ -676,10 +693,19 @@ print.summary.TD <- function(x, ...) {
 #' ## Plot the correlations between trials for GY.
 #' plot(wheatTD, plotType = "cor", traits = "GY")
 #'
+#' ### Scatter plot
+#'
+#' ## Plot scatter plot for GY.
+#' plot(wheatTD, plotType = "scatter", traits = "GY")
+#'
+#' ## Add correlations to top left corner of plots.
+#' plot(wheatTD, plotType = "scatter", traits = "GY", addCorr = "tl")
+#'
+#' @importFrom grDevices hcl.colors hcl.pals
 #' @export
 plot.TD <- function(x,
                     ...,
-                    plotType = c("layout", "map", "box", "cor"),
+                    plotType = c("layout", "map", "box", "cor", "scatter"),
                     trials = names(x),
                     traits = NULL,
                     output = TRUE) {
@@ -700,7 +726,7 @@ plot.TD <- function(x,
       if (!chkRowCol(trDat)) next
       if (length(highlight) > 0) {
         trDat[["highlight."]] <- ifelse(trDat[["genotype"]] %in% highlight,
-                                   as.character(trDat[["genotype"]]), NA)
+                                        as.character(trDat[["genotype"]]), NA)
       }
       trLoc <- attr(trDat, "trLocation")
       plotRep <- hasName(x = trDat, name = "repId")
@@ -740,10 +766,8 @@ plot.TD <- function(x,
         theme(panel.background = element_blank(),
               plot.title = element_text(hjust = 0.5)) +
         ## Move ticks to edge of the plot.
-        scale_x_continuous(breaks = scales::pretty_breaks(),
-                           expand = c(0, 0)) +
-        scale_y_continuous(breaks = scales::pretty_breaks(),
-                           expand = c(0, 0)) +
+        scale_x_continuous(breaks = scales::pretty_breaks(), expand = c(0, 0)) +
+        scale_y_continuous(breaks = scales::pretty_breaks(), expand = c(0, 0)) +
         ggtitle(trLoc)
       if (sum(!is.na(trDat[["highlight."]])) > 0) {
         ## Genotypes to be highlighted get a color.
@@ -854,7 +878,7 @@ plot.TD <- function(x,
     ## Add 10% to edges of map so locations are not on the absolute edge.
     longR <- longR + c(-0.1, 0.1) * diff(longR)
     latR <- latR + c(-0.1, 0.1) * diff(latR)
-    ## Create data useable by ggplot geom_polygon.
+    ## Create data usable by ggplot geom_polygon.
     mapDat <- mapData(xLim = longR, yLim = latR)
     p <- ggplot(mapDat, aes_string(x = "long", y = "lat")) +
       geom_polygon(aes_string(group = "group"), fill = "white",
@@ -944,11 +968,18 @@ plot.TD <- function(x,
       ## Create boxplot.
       pTr <- ggplot(plotDat, aes_string(x = paste0("`", xVar, "`"),
                                         y = paste0("`", trait, "`"),
-                                        fill = if (is.null(colorBy)) NULL else
+                                        fill = if (is.null(colorBy)) 1 else
                                           paste0("`", colorBy, "`"))) +
-        geom_boxplot(na.rm = TRUE) +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+              panel.background = element_blank(),
+              panel.grid = element_blank(),
+              panel.border = element_rect(color = "black", fill = NA)) +
         labs(x = xVar, y = trait)
+        if (is.null(colorBy)) {
+          pTr <- pTr + geom_boxplot(na.rm = TRUE, fill = "darkgrey")
+        } else {
+          pTr <- pTr + geom_boxplot(na.rm = TRUE)
+        }
       p[[trait]] <- pTr
       if (output) {
         plot(pTr)
@@ -995,23 +1026,26 @@ plot.TD <- function(x,
       ordClust <- order.dendrogram(as.dendrogram(corClust))
       ## Reorder according to clusters.
       corMat <- corMat[ordClust, ordClust]
-      ## Melt to get the proper format for ggplot.
-      meltedCorMat <- reshape2::melt(corMat)
-      ## If trial names consist of only numbers melt converts them to numeric.
+      ## Convert corMat to data.frame to prevent crash when reshaping.
+      corMat <- as.data.frame(corMat)
+      ## Convert correlation matrix to long format for ggplot.
+      meltedCorMat <- reshape(corMat, direction = "long",
+                              varying = list(genotype = colnames(corMat)),
+                              ids = rownames(corMat), idvar = "trial1",
+                              times = colnames(corMat), timevar = "trial2",
+                              v.names = "cor")
+      ## Reshape converts trial columns to character.
       ## This gives problems with plotting, so reconvert them to factor.
-      if (is.numeric(meltedCorMat[["Var1"]])) {
-        meltedCorMat[["Var1"]] <- factor(meltedCorMat[["Var1"]],
+      meltedCorMat[["trial1"]] <- factor(meltedCorMat[["trial1"]],
                                          levels = rownames(corMat))
-        meltedCorMat[["Var2"]] <- factor(meltedCorMat[["Var2"]],
+      meltedCorMat[["trial2"]] <- factor(meltedCorMat[["trial2"]],
                                          levels = rownames(corMat))
-      }
-      ## Remove top left of the plot. Only plotting a bottom right triangle.
-      ## Diagonal is removed as well.
-      meltedCorMat <- meltedCorMat[as.numeric(meltedCorMat$Var1) >
-                                     as.numeric(meltedCorMat$Var2), ]
+      ## Select bottom right triangle for correlations and top for variances.
+      meltedCorMatLow <- meltedCorMat[as.numeric(meltedCorMat[["trial1"]]) >
+                                        as.numeric(meltedCorMat[["trial2"]]), ]
       ## Create plot.
-      pTr <- ggplot(data = meltedCorMat, aes_string("Var1", "Var2")) +
-        geom_tile(aes_string(fill = "value"), color = "grey50") +
+      pTr <- ggplot(data = meltedCorMatLow, aes_string("trial1", "trial2")) +
+        geom_tile(aes_string(fill = "cor"), color = "grey50") +
         ## Create a gradient scale.
         scale_fill_gradient2(low = "blue", high = "red", mid = "white",
                              na.value = "grey", limit = c(-1, 1)) +
@@ -1034,6 +1068,202 @@ plot.TD <- function(x,
       p[[trait]] <- pTr
       if (output) {
         plot(pTr)
+      }
+    }
+  } else if (plotType == "scatter") {
+    if (length(trials) == 1) {
+      stop("At least two trials requiered for a scatter plot.\n")
+    }
+    chkChar(traits, null = FALSE)
+    colorBy <- dotArgs$colorBy
+    if (!is.null(colorBy)) {
+      chkChar(colorBy, len = 1, null = FALSE)
+    }
+    if (!is.null(colorBy) && !all(sapply(X = x, FUN = function(trial) {
+      hasName(x = trial, name = colorBy)
+    }))) {
+      stop("colorBy should be a column in TD.\n")
+    }
+    trialOrder <- dotArgs$trialOrder
+    if (!is.null(trialOrder) &&
+        (!all(trialOrder %in% trials) || !all(trials %in% trialOrder))) {
+      stop("trials and trialOrder should contain exactly the same trials.\n")
+    }
+    addCorr <- dotArgs$addCorr
+    if (!is.null(addCorr)) {
+      addCorr <- match.arg(addCorr, choices = c("tl", "bl", "tr", "br"))
+    }
+    ## Create list of colors for histograms.
+    ## Outside trait loop to assure identical coloring of trials.
+    histCols <- setNames(hcl.colors(length(trials),
+                                    palette = hcl.pals("qualitative")[1]),
+                         paste0("t", trials))
+    p <- setNames(vector(mode = "list", length = length(traits)), traits)
+    for (trait in traits) {
+      ## Create plot title.
+      plotTitle <- ifelse(!is.null(dotArgs$title), dotArgs$title,
+                          paste("Scatterplots of trials for", trait))
+      ## Create a single data.frame from x with only columns genotype, trial
+      ## and trait.
+      ## trials where trait is not measured/available are removed by setting
+      ## them to NULL.
+      plotDat <- Reduce(f = rbind, x = lapply(X = x, FUN = function(trial) {
+        if (!hasName(x = trial, name = trait) || all(is.na(trial[[trait]]))) {
+          NULL
+        } else {
+          trial[c("genotype", "trial", trait, colorBy)]
+        }
+      }))
+      if (!is.null(plotDat)) {
+        plotDat <- droplevels(plotDat)
+      }
+      if (is.null(plotDat) || nlevels(plotDat[["trial"]]) < 2) {
+        warning(trait, " has no valid observations for a least two trials.\n",
+                "Plot skipped.\n", call. = FALSE)
+        next
+      }
+      if (!is.null(trialOrder)) {
+        ## Reorder trials.
+        ## First restrict reordering to trials left after removing NA trials.
+        trialOrderTr <- trialOrder[trialOrder %in% levels(plotDat[["trial"]])]
+        plotDat[["trial"]] <- factor(plotDat[["trial"]], trialOrderTr)
+      }
+      ## Create table with values trait per genotype per trial.
+      ## If TD already contains BLUEs/BLUPs taking means doesn't do anything
+      ## but it is needed for raw data where there can be replicates.
+      plotTab <- as.data.frame(tapply(plotDat[[trait]],
+                                      INDEX = list(plotDat[["genotype"]],
+                                                   plotDat[["trial"]]),
+                                      FUN = mean, na.rm = TRUE))
+      plotRange <- range(unlist(plotTab), na.rm = TRUE)
+      if (!is.null(addCorr)) {
+        ## Compute correlations for annotation.
+        corMat <- cor(plotTab, use = "pairwise.complete.obs")
+        ## Convert corMat to data.frame to prevent crash when reshaping.
+        corMat <- as.data.frame(corMat)
+        ## Convert correlation matrix to long format for ggplot.
+        meltedCorMat <- reshape(corMat, direction = "long",
+                                varying = list(genotype = colnames(corMat)),
+                                ids = rownames(corMat), idvar = "trial1",
+                                times = colnames(corMat), timevar = "trial2",
+                                v.names = "cor")
+        ## Reshape converts trial columns to character.
+        ## This gives problems with plotting, so reconvert them to factor.
+        meltedCorMat[["trial1"]] <- factor(meltedCorMat[["trial1"]],
+                                           levels = rownames(corMat))
+        meltedCorMat[["trial2"]] <- factor(meltedCorMat[["trial2"]],
+                                           levels = rownames(corMat))
+        ## Set position for annotation.
+        ## Using Inf and -Inf for positions independent of scale.
+        minPos <- plotRange[1] + 0.03 * plotRange[1] * sign(plotRange[1])
+        maxPos <- plotRange[2] - 0.03 * plotRange[2] * sign(plotRange[2])
+        meltedCorMat[["x"]] <- ifelse(addCorr %in% c("tl", "bl"), minPos, maxPos)
+        meltedCorMat[["y"]] <- ifelse(addCorr %in% c("br", "bl"), minPos, maxPos)
+        colnames(meltedCorMat)[colnames(meltedCorMat) == "trial1"] <- "trial.x"
+        colnames(meltedCorMat)[colnames(meltedCorMat) == "trial2"] <- "trial.y"
+      }
+      ## Create plots containing histograms.
+      ## Used further on to replace diagonal plot in plot matrix.
+      histVars <- paste0("t", colnames(plotTab))
+      histPlots <- lapply(X = histVars, FUN = function(trial) {
+        colnames(plotTab) <- paste0("t", colnames(plotTab))
+        binWidth <- diff(range(plotTab[[trial]], na.rm = TRUE)) / 10
+        ggplot(plotTab, aes_string(x = trial,
+                                   y = "(..count..)/sum(..count..)")) +
+          geom_histogram(na.rm = TRUE, binwidth = binWidth, boundary = 0,
+                         fill = histCols[trial], color = "grey50") +
+          scale_x_continuous(limits = range(plotTab, na.rm = TRUE)) +
+          theme(panel.background = element_blank(),
+                panel.grid = element_blank(),
+                panel.border = element_rect(color = "black", fill = NA))
+      })
+      ## Y-axis should be the same for all histograms.
+      ## Build histograms and extract axis information.
+      yMax <- max(sapply(X = histPlots, FUN = function(hp) {
+        max(ggplot_build(hp)$data[[1]][["ymax"]])
+      }))
+      ## Add scaling for y-axis to histograms
+      ## Convert to grobs for easier use later on.
+      histGrobs <- lapply(X = histPlots, FUN = function(hp) {
+        hp <- hp + scale_y_continuous(expand = c(0, 0, 0, 0.05),
+                                      labels = function(x) {
+                                        paste0(100 * x, "%")
+                                      }, limits = c(0, yMax))
+        ggplotGrob(hp)
+      })
+      ## Reshape to get data in format suitable for ggplot.
+      plotTab <- reshape(plotTab, direction = "long",
+                         varying = colnames(plotTab),
+                         timevar = "trial", times = colnames(plotTab),
+                         idvar = "genotype", ids = rownames(plotTab),
+                         v.names = trait)
+      if (!is.null(colorBy)) {
+        plotTab <- merge(plotTab, unique(plotDat[c("genotype", colorBy)]))
+      }
+      ## Merge to itself to create a full data set.
+      plotTab <- merge(plotTab, plotTab, by = c("genotype", colorBy))
+      ## Create a facet plot containing only scatterplots.
+      scatterBase <- ggplot(data = plotTab,
+                            aes_string(x = paste0(trait, ".x"),
+                                       y = paste0(trait, ".y"),
+                                       color = if (is.null(colorBy)) NULL else
+                                         paste0("`", colorBy, "`"))) +
+        scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
+        scale_y_continuous(breaks = scales::breaks_extended(n = 3)) +
+        facet_grid(facets = c("trial.y", "trial.x")) +
+        labs(title = plotTitle, x = "", y = "") +
+        theme(plot.title = element_text(hjust = 0.5),
+              legend.position = c(1, 1),
+              legend.justification = c(1.5, 1.5),
+              aspect.ratio = 1,
+              panel.background = element_rect(fill = "white"),
+              panel.grid = element_blank(),
+              panel.border = element_rect(color = "black", fill = NA))
+      if (is.null(colorBy)) {
+        scatterBase <- scatterBase +
+          geom_point(na.rm = TRUE, color = "darkgrey", shape = 1)
+      } else {
+        scatterBase <- scatterBase + geom_point(na.rm = TRUE, shape = 1)
+      }
+      if (!is.null(addCorr)) {
+        ## Add correlation annotated in the corner of the plot.
+        scatterBase <- scatterBase +
+          geom_text(data = meltedCorMat,
+                    aes_string(x = "x", y = "y",
+                               label = "paste('rho ==', round(cor, 2))"),
+                    color = "red", hjust = "inward", vjust = "inward",
+                    parse = TRUE, inherit.aes = FALSE)
+      }
+      ## Convert to grobs to enable modifying.
+      scatterGrob <- ggplotGrob(scatterBase)
+      ## Get grobs containing plot panels.
+      panels <- scatterGrob$layout$name[grepl(pattern = "panel",
+                                              x = scatterGrob$layout$name)]
+      splitPanels <- strsplit(x = panels, split = "-")
+      ## Upper right panels need to be set to zeroGrob to make them empty.
+      nullPanels <- panels[sapply(X = splitPanels, FUN = function(pan) {
+        as.numeric(pan[2]) < as.numeric(pan[3])
+      })]
+      for (np in nullPanels) {
+        scatterGrob$grobs[[which(scatterGrob$layout$name == np)]] <- zeroGrob()
+      }
+      ## Set diagonal panels to histograms calculated before.
+      histPanels <- panels[sapply(X = splitPanels, FUN = function(pan) {
+        as.numeric(pan[2]) == as.numeric(pan[3])
+      })]
+      for (i in seq_along(histPanels)) {
+        hg <- histGrobs[[i]]
+        ## Replace grob by panel grob from histogram.
+        scatterGrob$grobs[[which(scatterGrob$layout$name == histPanels[i])]] <-
+          hg$grobs[[which(hg$layout$name == "panel")]]
+      }
+      ## Replace top left axis in the matrix by y axis from the first histogram.
+      scatterGrob$grobs[[which(scatterGrob$layout$name == "axis-l-1")]] <-
+        histGrobs[[1]]$grobs[[which(histGrobs[[1]]$layout$name == "axis-l")]]
+      p[[trait]] <- scatterGrob
+      if (output) {
+        grid::grid.newpage()
+        grid::grid.draw(scatterGrob)
       }
     }
   }

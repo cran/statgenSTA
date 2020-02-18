@@ -78,6 +78,11 @@ plot(wheatTD, plotType = "box", traits = "GY", groupBy = "year",
 ## Create a correlation plot for grain yield.
 plot(wheatTD, plotType = "cor", traits = "GY")
 
+## ----scatPlot, fig.dim = c(7, 7)----------------------------------------------
+## Create a scatter plot matrix for grain yield.
+## Add correlations between trials in top left of scatter plots.
+plot(wheatTD, plotType = "scatter", traits = "GY", addCorr = "tl")
+
 ## ----fitSp, message=FALSE-----------------------------------------------------
 ## Fit a single trial model using a model based on a residual row column design.
 modWheatSp <- fitTD(TD = wheatTD, trials = "SR_FI_11", traits = "GY", design = "res.rowcol")
