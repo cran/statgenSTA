@@ -7,12 +7,17 @@ test_that("createTD creates objects of class TD", {
 })
 
 test_that("renaming columns 'one to one' works properly in createTD", {
+  testData2 <- testData
+  colnames(testData2)[colnames(testData2) == "block"] <- "trial"
+  expect_error(createTD(data = testData, genotype = "a"), "has to be NULL or")
+  expect_error(createTD(data = testData2, trial = "field"),
+               "following columns already exist in the input data")
+
   expect_equal(colnames(createTD(data = testData, genotype = "seed")[[1]])[1:2],
                c("genotype", "family"))
   expect_equal(colnames(createTD(data = testData, genotype = "seed",
                                  trial = "field")[[1]])[1:3],
                c("genotype", "family", "trial"))
-  expect_error(createTD(data = testData, genotype = "a"), "has to be NULL or")
 })
 
 test_that("renaming columns 'one to many' works properly in createTD", {
@@ -125,7 +130,7 @@ test_that("checkTDMeta functions properly", {
   expect_error(checkTDMeta(trLong = -200), "between -180 and 180")
   expect_silent(checkTDMeta(trLong = 120))
   expect_warning(checkTDMeta(trLat = 0, trLong = 0),
-               "trLat and trLong should all match a known land location")
+               "latitude and longitude should all match a known land location")
   expect_silent(checkTDMeta(trLat = 53, trLong = 0))
   expect_error(checkTDMeta(trPlWidth = c(-1, 1, 2)), "a positive numerical")
   expect_silent(checkTDMeta(trPlWidth = c(1, 1, 2)))

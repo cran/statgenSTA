@@ -88,6 +88,16 @@ test_that("options minLatRange and minLongRange function properly for TD map plo
   expect_equal(p$coordinates$limits$y, c(39.97, 63.97))
 })
 
+test_that("option colorTrialBy functions properly for TD map plot", {
+  expect_error(plot(TDHeat05, plotType = "map", colorTrialBy = 1),
+               "colorTrialBy should be a character string")
+  expect_error(plot(TDHeat05, plotType = "map", colorTrialBy = "grp"),
+               "colorTrialBy should be a column in TD")
+  expect_error(plot(TDHeat05, plotType = "map", colorTrialBy = "Plot"),
+               "colorTrialBy should be unique within each trial")
+  expect_silent(plot(TDHeat05, plotType = "map", colorTrialBy = "trial"))
+})
+
 ### TD box plot.
 
 test_that("TD box plot gives correct output types", {
@@ -111,12 +121,13 @@ test_that("option groupBy functions properly for TD box plot", {
   expect_true("~repId" %in% as.character(p$t1$mapping))
 })
 
-test_that("option colorBy functions properly for TD box plot", {
-  expect_error(plot(testTD, plotType = "box", traits = "t1", colorBy = 1),
-               "colorBy should be a character string")
-  expect_error(plot(testTD, plotType = "box", traits = "t1", colorBy = "grp"),
-               "colorBy should be a column in TD")
-  p <- plot(testTD, plotType = "box", traits = "t1", colorBy = "repId",
+test_that("option colorTrialBy functions properly for TD box plot", {
+  expect_error(plot(testTD, plotType = "box", traits = "t1", colorTrialBy = 1),
+               "colorTrialBy should be a character string")
+  expect_error(plot(testTD, plotType = "box", traits = "t1",
+                    colorTrialBy = "grp"),
+               "colorTrialBy should be a column in TD")
+  p <- plot(testTD, plotType = "box", traits = "t1", colorTrialBy = "repId",
             output = FALSE)
   expect_true(all(c("~repId", "~trial") %in% as.character(p$t1$mapping)))
 })
@@ -166,7 +177,7 @@ test_that("TD correlation plot gives correct output types", {
 
 test_that("TD scatter plot gives correct output types", {
   expect_error(plot(testTD, plotType = "scatter", traits = "trait"),
-               "At least two trials requiered for a scatter plot")
+               "At least two trials are requiered for a scatter plot")
   expect_error(plot(TDMaize, plotType = "scatter", traits = 1),
                "traits should be a character vector")
   expect_warning(plot(TDMaize, plotType = "scatter", traits = "trait"),
@@ -177,11 +188,24 @@ test_that("TD scatter plot gives correct output types", {
   expect_is(p[[1]], "gtable")
 })
 
-test_that("option colorBy functions properly for TD box plot", {
-  expect_error(plot(TDMaize, plotType = "scatter", traits = "t1", colorBy = 1),
-               "colorBy should be a character string")
+test_that("option colorGenoBy functions properly for TD scatter plot", {
   expect_error(plot(TDMaize, plotType = "scatter", traits = "t1",
-                    colorBy = "grp"), "colorBy should be a column in TD")
+                    colorGenoBy = 1),
+               "colorGenoBy should be a character string")
+  expect_error(plot(TDMaize, plotType = "scatter", traits = "t1",
+                    colorGenoBy = "grp"),
+               "colorGenoBy should be a column in TD")
+})
+
+test_that("option colorTrialBy functions properly for TD scatter plot", {
+  expect_error(plot(TDMaize, plotType = "scatter", traits = "t1",
+                    colorTrialBy = 1),
+               "colorTrialBy should be a character string")
+  expect_error(plot(TDMaize, plotType = "scatter", traits = "t1",
+                    colorTrialBy = "grp"),
+               "colorTrialBy should be a column in TD")
+  expect_silent(plot(TDMaize, plotType = "scatter", traits = "yld",
+                     colorTrialBy = "trial"))
 })
 
 test_that("option addCorr functions properly for TD box plot", {
@@ -200,10 +224,17 @@ test_that("option addCorr functions properly for TD box plot", {
   expect_silent(plot(TDMaize2, plotType = "scatter", traits = "yld"))
 })
 
-test_that("option trialOrder functions properly for TD box plot", {
+test_that("option trialOrder functions properly for TD scatter plot", {
   expect_error(plot(TDMaize, plotType = "scatter", traits = "t1",
                     trialOrder = 1),
                "trials and trialOrder should contain exactly the same trials")
   expect_silent(p <- plot(TDMaize, plotType = "scatter", traits = "yld",
                           trialOrder = rev(names(TDMaize))))
+})
+
+test_that("scatterPlot works correctly for trials with non-syntactic names", {
+  TDMaize2 <- TDMaize
+  levels(TDMaize2$HN96b[["trial"]])[1] <- "HN-96b"
+  names(TDMaize2)[1] <- "HN-96b"
+  expect_silent(plot(TDMaize2, plotType = "scatter", traits = "yld"))
 })

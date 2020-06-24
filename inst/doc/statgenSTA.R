@@ -72,7 +72,7 @@ plot(wheatTD, plotType = "box", traits = "GY")
 ## Create a boxplot for grain yield with boxes grouped by year and repIds within
 ## years colored.
 plot(wheatTD, plotType = "box", traits = "GY", groupBy = "year", 
-     colorBy = "repId", orderBy = "descending")
+     colorTrialBy = "repId", orderBy = "descending")
 
 ## ----corPlot------------------------------------------------------------------
 ## Create a correlation plot for grain yield.
@@ -84,7 +84,7 @@ plot(wheatTD, plotType = "cor", traits = "GY")
 plot(wheatTD, plotType = "scatter", traits = "GY", addCorr = "tl")
 
 ## ----fitSp, message=FALSE-----------------------------------------------------
-## Fit a single trial model using a model based on a residual row column design.
+## Fit a single trial model using a model based on a resovable row column design.
 modWheatSp <- fitTD(TD = wheatTD, trials = "SR_FI_11", traits = "GY", design = "res.rowcol")
 
 ## ----fitSpSm, message=FALSE---------------------------------------------------

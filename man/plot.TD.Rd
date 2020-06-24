@@ -73,6 +73,8 @@ made using ggplot, but for getting the data for the borders of the countries
 the maps package is needed.\cr
 Extra parameter options:
 \describe{
+\item{colorTrialBy}{A character string indicating a column in \code{TD} by
+which the trials on the map are colored.}
 \item{minLatRange}{A positive numerical value indicating the minimum range
 (in degrees) for the latitude on the plotted map. Defaults to 10.}
 \item{minLongRange}{A positive numerical value indicating the minimum range
@@ -88,9 +90,9 @@ options:
 \item{groupBy}{A character string indicating a column in \code{TD} by which
 the boxes in the plot should be grouped. By default the boxes are grouped
 per trial.}
-\item{colorBy}{A character string indicating a column in \code{TD} by which
-the boxes are colored. Coloring will be done within the groups indicated by
-the \code{groupBy} parameter.}
+\item{colorTrialBy}{A character string indicating a column in \code{TD} by
+which the boxes are colored. Coloring will be done within the groups
+indicated by the \code{groupBy} parameter.}
 \item{orderBy}{A character string indicating the way the boxes should be
 ordered. Either "alphabetic" for alphabetical ordering of the groups,
 "ascending" for ordering by ascending mean, or "descending" for ordering by
@@ -114,8 +116,8 @@ the matix contains scatter plots between trials. The diagonal contains
 histograms of the data per trial.\cr
 Extra parameter options:
 \describe{
-\item{colorBy}{A character string indicating a column in \code{TD} by which
-the genotypes in the scatter plots are colored.}
+\item{colorGenoBy}{A character string indicating a column in \code{TD} by
+which the genotypes in the scatter plots are colored.}
 \item{trialOrder}{A character vector indicating the order of the trials in
 the plot matrix (left to right and top to bottom). This vector should be a
 permutation of all trials plotted.}
@@ -159,7 +161,7 @@ plot(wheatTD, plotType = "map")
 plot(wheatTD, plotType = "box", traits = "GY")
 
 ## Add coloring by repId to the boxes.
-plot(wheatTD, plotType = "box", traits = "GY", colorBy = "repId")
+plot(wheatTD, plotType = "box", traits = "GY", colorTrialBy = "repId")
 
 ## Sort the boxes in descending order.
 plot(wheatTD, plotType = "box", traits = "GY", orderBy = "descending")
