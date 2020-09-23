@@ -2,6 +2,10 @@ context("Class TD")
 
 ### Create.
 
+test_that("input checks for createTD work correctly", {
+  expect_error(createTD(data = 1), "has to be a data.frame")
+})
+
 test_that("createTD creates objects of class TD", {
   expect_is(createTD(data = testData), "TD")
 })
@@ -47,16 +51,64 @@ test_that("attribute renamed is properly filled in createTD", {
                           stringsAsFactors = FALSE))
 })
 
-test_that("attribute design is properly filled in create TD", {
+test_that("attribute design is properly filled in createTD", {
   expect_null(attr(createTD(data = testData)[["testData"]], "design"))
   expect_equal(attr(createTD(data = testData, trDesign = "rcbd")[["testData"]],
                     "trDesign"), "rcbd")
   expect_error(createTD(data = testData, trDesign = "abc"), "should be one of")
 })
 
+test_that("meta data can be added from function arguments", {
+  ## Single trial
+  testMeta <- getMeta(createTD(data = testData, trPlWidth = 5,
+                               trPlLength = 2, trLocation = "loc1"))
+  expect_equal(testMeta[["trLocation"]], "loc1")
+  expect_equal(testMeta[["trPlWidth"]], 5)
+  expect_equal(testMeta[["trPlLength"]], 2)
+  ## Multiple trials.
+  testMeta2 <- getMeta(createTD(data = testData, trial = "field", trPlWidth = 5,
+                               trPlLength = 2, trLocation = "loc1"))
+  expect_equal(testMeta2[["trLocation"]], rep("loc1", times = 3))
+  expect_equal(testMeta2[["trPlWidth"]], c(5, 5, 5))
+  expect_equal(testMeta2[["trPlLength"]], c(2, 2, 2))
+})
+
+test_that("meta data can be added from columns in input data", {
+  testData2 <- testData
+  testData2[["lat"]] <- rep(c(10, 20 ,30), each = 30)
+  testData2[["long"]] <- rep(c(10, 20 ,30), each = 30)
+  testData2[["date"]] <- rep(as.Date("2000/1/1") + 0:2, each = 30)
+  testData2[["design"]] <- rep(c("ibd", "rowcol" ,"res.rowcol"), each = 30)
+  expect_error(createTD(data = testData2, trLat = "lat"),
+               "trLat not unique for testData2")
+  expect_error(createTD(data = testData2, trLong = "long"),
+               "trLong not unique for testData2")
+  expect_error(createTD(data = testData2, trDate = "date"),
+               "trDate not unique for testData2")
+  expect_error(createTD(data = testData2, trDesign = "design"),
+               "trDesign not unique for testData2")
+  testMeta <- getMeta(createTD(data = testData2, trial = "field", trLat = "lat",
+                               trLong = "long", trDate = "date",
+                               trDesign = "design"))
+  expect_equal(testMeta[["trLat"]], c(10, 20 ,30))
+  expect_equal(testMeta[["trLong"]], c(10, 20 ,30))
+  expect_equal(testMeta[["trDate"]], as.Date("2000/1/1") + 0:2)
+  expect_equal(testMeta[["trDesign"]], c("ibd", "rowcol" ,"res.rowcol"))
+})
+
+test_that("row and column are tested for uniqueness in createTD", {
+  testData2 <- testData
+  testData2[testData2[["Y"]] == 1 & testData2[["X"]] == 1, "Y"] <- 2
+  expect_warning(createTD(data = testData2, rowCoord = "Y", colCoord = "X"),
+                 "Combinations of row and column coordinates should be unique")
+  expect_warning(createTD(data = testData2, trial = "field",
+                        rowCoord = "Y", colCoord = "X"),
+                 "row and column coordinates should be unique within trials")
+})
+
 test_that("createTD accepts tibbles as input", {
   ## Skip on cran since it needs package tibble as extra dependency.
-  skip_on_cran()
+  skip_if_not_installed("tibble")
   expect_is(createTD(data = tibble::as_tibble(testData)), "TD")
 })
 

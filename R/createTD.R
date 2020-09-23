@@ -68,7 +68,7 @@
 #' the trials. This will be used as default names when creating plots and
 #' summaries. If no locations are provided, first the column loc is considered.
 #' If this contains one unique value for a trial this is used as trLocation.
-#' Otherwise the trialname is used.
+#' Otherwise the trial name is used.
 #' @param trDate An optional character string indicating the column in
 #' \code{data} that contains the date of the trial or a date vector indicating
 #' the dates of the trials.
@@ -83,8 +83,7 @@
 #' latitudes of the trials on a scale of -90 to 90.
 #' @param trLong An optional character string indicating the column in
 #' \code{data} that contains the latitude of the trial or a numerical vector
-#' indicating the longitudes of the trials on a scale of -180 to 180. If
-#' \code{trLong} is not provided longitude will be taken from \code{long}.
+#' indicating the longitudes of the trials on a scale of -180 to 180.
 #' @param trPlWidth An optional positive numerical vector indicating the
 #' widths of the plots.
 #' @param trPlLength An optional positive numerical vector indicating the
@@ -98,7 +97,7 @@
 #' for trial, the list will contain one item named after the input data.
 #'
 #' @examples
-#' ## Create a data.frame with to be converted to TD object.
+#' ## Create a data.frame to be converted to TD object.
 #' ## The data consists of genotype, trial, row and column information and
 #' ## two traits, yield and flowering time.
 #' datT1 <- data.frame(geno = paste0("G", 1:10), tr = "T1",
@@ -110,7 +109,7 @@
 #'                  rowCoord = "row", colCoord = "col")
 #'
 #' ## Create a second data.frame similar to the first with data for a second trial.
-#' datT2<- data.frame(geno = paste0("G", 1:10), tr = "T2",
+#' datT2 <- data.frame(geno = paste0("G", 1:10), tr = "T2",
 #'                     row = rep(1:2, each = 5), col = rep(1:5, times = 2),
 #'                     yield = 10:1, flowering = 12:3)
 #'
@@ -170,8 +169,7 @@ createTD <- function(data,
       stop(deparse(param), " has to be NULL or a column in data.\n")
     }
   }
-  checkTDMeta(trDesign = trDesign, trPlWidth = trPlWidth,
-              trPlLength = trPlLength)
+  checkTDMeta(trPlWidth = trPlWidth, trPlLength = trPlLength)
   ## Create list of reserved column names for renaming columns.
   renameCols <- c("genotype", "trial", "loc", "year", "repId", "plotId",
                   "subBlock", "rowId", "colId", "rowCoord", "colCoord",
@@ -408,8 +406,8 @@ dropTD <- function(TD,
 #'
 #' @param object An object of class TD.
 #' @param ... Further arguments - currently not used.
-#' @param trial A character string specifying the trial to be summarised.
-#' @param traits A character vector specifying the traits to be summarised.
+#' @param trial A character string specifying the trial to be summarized.
+#' @param traits A character vector specifying the traits to be summarized.
 #' @param groupBy A character string specifying a column in TD by which the
 #' summary should be grouped. If \code{NULL}, no grouping is done.
 #' @param what A character vector indicating which summary statistics should be
@@ -424,8 +422,8 @@ dropTD <- function(TD,
 #' \item{min}{The minimum.}
 #' \item{max}{The maximum.}
 #' \item{range}{The range (maximum - minimum).}
-#' \item{firstQ}{The first (25\%) quantile.}
-#' \item{thirdQ}{The third (75\%) quantile.}
+#' \item{firstQ}{The first (25pct) quantile.}
+#' \item{thirdQ}{The third (75pct) quantile.}
 #' \item{sd}{The standard deviation.}
 #' \item{seMean}{The standard error of mean.}
 #' \item{var}{The variance.}
@@ -596,7 +594,8 @@ summary.TD <- function(object,
 }
 
 #' @export
-print.summary.TD <- function(x, ...) {
+print.summary.TD <- function(x,
+                             ...) {
   whichStat <- attr(x, "whichStat")
   groupBy  <- attr(x, "group")
   decimals <- c(rep(x = 0, times = 3), rep(x = 2, times = 7),
@@ -636,43 +635,48 @@ print.summary.TD <- function(x, ...) {
 #' extra parameters of the different plots is given in the sections below.
 #'
 #' @section Layout Plot:
-#' Plots the layout of the selected trials (all available trials by default).
+#' Plots the layout of the selected trials.
 #' This plot can only be made for trials that contain both row (\code{rowCoord})
 #' and column (\code{colCoord}) information. If either one of those is missing
 #' the trial is skipped with a warning. If blocks (\code{subBlock}) are
-#' available for a trial these are indicated in different colors per block,
-#' otherwise all plots are colored in grey. If replicates (\code{repId}) are
-#' available a black line is plotted between diffent replicates. Missing plots
-#' are indicated in white. This can either be single plots in a trial or
+#' available for a trial these can be colored in different colors per block by
+#' setting \code{colorSubBlock = TRUE}. If replicates (\code{repId}) are
+#' available a black line is plotted between different replicates. Missing plots
+#' are indicated in white. These can either be single plots in a trial or
 #' complete missing columns or rows.\cr
 #' Extra parameter options:
 #' \describe{
-#' \item{showGeno}{Should individual genotypes be indicated in the plot?
+#' \item{showGeno}{Should individual genotypes be indicated as text in the plot?
 #' Defaults to \code{FALSE}}
 #' \item{highlight}{A character vector of genotypes to be highlighted in the
 #' plot.}
-#' \item{colorSubBlock}{Should subBlocks be colored with a different color per
+#' \item{colorSubBlock}{Should blocks be colored with a different color per
 #' subBlock? Defaults to \code{FALSE}. \code{colorSubBlock} is ignored when
 #' highlight is used to highlight genotypes.}
 #' }
 #'
 #' @section Map Plot:
 #' A map is plotted with the locations of the trials in the TD object.
-#' Mapping the trials is done based on lattitude and longitude that can be
-#' added when creating an object of class TD. Trials without latitude and/or
-#' longitude available are skipped with a warning message. The countries in
-#' which the trials are located will be plotted on a single map and the
-#' location of the trials will be indicated on this map. The actual plot is
-#' made using ggplot, but for getting the data for the borders of the countries
-#' the maps package is needed.\cr
+#' Mapping the trials is done based on latitude and longitude that can be
+#' added when creating an object of class TD. Trials for which either latitude
+#' or longitude is not available are skipped with a warning message.
+#' The countries in which the trials are located will be plotted on a single
+#' map and the location of the trials will be indicated on this map. The
+#' actual plot is made using ggplot, but for getting the data for the borders
+#' of the countries the maps package is needed.\cr
 #' Extra parameter options:
 #' \describe{
 #' \item{colorTrialBy}{A character string indicating a column in \code{TD} by
 #' which the trials on the map are colored.}
+#' \item{colTrial}{A character vector with plot colors for the trials. A
+#' single color when \code{colorTrialBy = NULL}, a vector of colors otherwise.}
+#' \item{printTrialsNames}{Should trial names be printed. Defaults to
+#' \code{TRUE}. Setting this to \code{FALSE} can be useful if there are many
+#' trials.}
 #' \item{minLatRange}{A positive numerical value indicating the minimum range
 #' (in degrees) for the latitude on the plotted map. Defaults to 10.}
 #' \item{minLongRange}{A positive numerical value indicating the minimum range
-#' (in degrees) for the longitud on the plotted map. Defaults to 5.}
+#' (in degrees) for the longitude on the plotted map. Defaults to 5.}
 #' }
 #'
 #' @section Box Plot:
@@ -685,6 +689,8 @@ print.summary.TD <- function(x, ...) {
 #' \item{colorTrialBy}{A character string indicating a column in \code{TD} by
 #' which the boxes are colored. Coloring will be done within the groups
 #' indicated by the \code{groupBy} parameter.}
+#' \item{colTrial}{A character vector with plot colors for the trials. A
+#' single color when \code{colorTrialBy = NULL}, a vector of colors otherwise.}
 #' \item{orderBy}{A character string indicating the way the boxes should be
 #' ordered. Either "alphabetic" for alphabetical ordering of the groups,
 #' "ascending" for ordering by ascending mean, or "descending" for ordering by
@@ -692,27 +698,34 @@ print.summary.TD <- function(x, ...) {
 #' }
 #'
 #' @section Correlation Plot:
-#' Draws a heatmap of correlations between trials per selected trait. If
+#' Draws a heat map of correlations between trials per selected trait. If
 #' genotypes are replicated within trials genotypic means are taken before
-#' computing correlations. The order of the trials in the heatmap is determined
-#' by clustering them.
+#' computing correlations. The order of the trials in the heat map is determined
+#' by clustering them. Closely related trials will be plotted close to each
+#' other.
 #'
 #' @section Scatter Plot:
 #' Draws a scatter plot matrix per selected trait. If genotypes are replicated
 #' within trials genotypic means are taken before plotting. The lower left of
-#' the matix contains scatter plots between trials. The diagonal contains
+#' the matrix contains scatter plots between trials. The diagonal contains
 #' histograms of the data per trial.\cr
 #' Extra parameter options:
 #' \describe{
 #' \item{colorGenoBy}{A character string indicating a column in \code{TD} by
 #' which the genotypes in the scatter plots are colored.}
+#' \item{colGeno}{A character vector with plot colors for the genotypes. A
+#' single color when \code{colorGenoBy = NULL}, a vector of colors otherwise.}
+#' \item{colorTrialBy}{A character string indicating a column in \code{TD} by
+#' which the trials in the histograms are colored.}
+#' \item{colTrial}{A character vector with plot colors for the trials. A
+#' single color when \code{colorTrialBy = NULL}, a vector of colors otherwise.}
 #' \item{trialOrder}{A character vector indicating the order of the trials in
 #' the plot matrix (left to right and top to bottom). This vector should be a
 #' permutation of all trials plotted.}
 #' \item{addCorr}{A character string indicating the position of the correlation
-#' diplayed in each plot, either "tl" for top left, "tr", for top right, "bl"
-#' for bottom left or "br" for bottom right. If \code{NULL}, the default, then
-#' no correlation is added to the plot.}
+#' between trials displayed in each plot, either "tl" for top left, "tr", for
+#' top right, "bl" for bottom left or "br" for bottom right. If \code{NULL},
+#' the default, then no correlation is added to the plot.}
 #' }
 #'
 #' @param x An object of class TD.
@@ -720,10 +733,13 @@ print.summary.TD <- function(x, ...) {
 #' section.
 #' @param plotType A single character string indicating which plot should be
 #' made. See the sections below for a detailed explanation of the plots.
-#' @param trials A character vector indicating the trials to be plotted when
-#' plotting field layouts. Only used if \code{plotType} = "layout" or "box".
-#' @param traits A character vector indicating the traits to be plotted in
-#' a boxplot. Only used if \code{plotType} = "box" or "cor".
+#' @param trials A character vector indicating which trials to include in the
+#' plot.
+#' @param traits A character vector indicating for which traits a plot should
+#' be made. Only used if \code{plotType} = "box", "cor", and "scatter".
+#' @param title A character string used a title for the plot. Note that when
+#' a title is specified and multiple plots are created, all plots will get the
+#' same title.
 #' @param output Should the plot be output to the current device? If
 #' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
@@ -745,6 +761,7 @@ print.summary.TD <- function(x, ...) {
 #'
 #' ### Layout plot.
 #'
+#' \donttest{
 #' ## Plot the layout of one of the trials.
 #' plot(wheatTD, trials = "C_SWS_12")
 #'
@@ -779,8 +796,9 @@ print.summary.TD <- function(x, ...) {
 #'
 #' ## Add correlations to top left corner of plots.
 #' plot(wheatTD, plotType = "scatter", traits = "GY", addCorr = "tl")
+#' }
 #'
-#' @importFrom grDevices hcl.colors hcl.pals
+#' @importFrom grDevices topo.colors
 #' @importFrom utils combn
 #' @export
 plot.TD <- function(x,
@@ -788,11 +806,15 @@ plot.TD <- function(x,
                     plotType = c("layout", "map", "box", "cor", "scatter"),
                     trials = names(x),
                     traits = NULL,
+                    title = NULL,
                     output = TRUE) {
   ## Checks.
   trials <- chkTrials(trials, x)
   plotType <- match.arg(plotType)
+  chkChar(title, len = 1)
   dotArgs <- list(...)
+  ## Restrict x to trials.
+  x <- dropTD(x, names(x)[!names(x) %in% trials])
   if (plotType == "layout") {
     showGeno <- isTRUE(dotArgs$showGeno)
     highlight <- dotArgs$highlight
@@ -819,10 +841,10 @@ plot.TD <- function(x,
       ## Create data.frame with all rows columns in field.
       ## Full missing rows/columns are included.
       ## If not geom_tile just fills the empty columns by expanding the
-      ## neighbouring colums (or rows).
+      ## neighboring columns (or rows).
       fullGrid <- expand.grid(colCoord = xMin:xMax, rowCoord = yMin:yMax)
       trDat <- merge(fullGrid, trDat, all.x = TRUE)
-      trDat[!is.na(trDat[["rowId"]]), "color."] <- "grey75"
+      trDat[!is.na(trDat[["rowId"]]), "color."] <- "grey85"
       ## Compute aspect for proper depiction of field size. If no information
       ## is available plots are assumed to be square.
       ylen <- attr(trDat, "trPlLength")
@@ -836,6 +858,11 @@ plot.TD <- function(x,
       ## Create data for lines between replicates.
       if (plotRep) {
         repBord <- calcPlotBorders(trDat = trDat, bordVar = "repId")
+      }
+      if (is.null(title)) {
+        plotTitle <- trLoc
+      } else {
+        plotTitle <- title
       }
       ## Create base plot.
       pTr <-
@@ -852,14 +879,14 @@ plot.TD <- function(x,
                                     expand = c(0, 0)) +
         ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(),
                                     expand = c(0, 0)) +
-        ggplot2::ggtitle(trLoc)
+        ggplot2::ggtitle(plotTitle)
       if (sum(!is.na(trDat[["highlight."]])) > 0) {
         ## Genotypes to be highlighted get a color.
         ## Everything else the NA color.
         pTr <- pTr +
           ggplot2::geom_tile(ggplot2::aes_string(fill = "highlight.",
                                                  color = "color.")) +
-          ggplot2::scale_color_manual(values = "grey75", na.translate = FALSE,
+          ggplot2::scale_color_manual(values = "grey85", na.translate = FALSE,
                                       na.value = "transparant") +
           ## Remove NA from scale.
           ggplot2::scale_fill_discrete(na.translate = FALSE) +
@@ -870,15 +897,15 @@ plot.TD <- function(x,
         pTr <- pTr +
           ggplot2::geom_tile(ggplot2::aes_string(fill = "subBlock",
                                                  color = "color.")) +
-          ggplot2::scale_color_manual(values = "grey75", na.translate = FALSE,
+          ggplot2::scale_color_manual(values = "grey85", na.translate = FALSE,
                                       na.value = "transparant") +
           ggplot2::guides(fill = ggplot2::guide_legend(ncol = 3), color = "none")
       } else {
-        ## No subblocks and no hightlights so just a single fill color.
+        ## No subblocks and no highlights so just a single fill color.
         pTr <- pTr +
           ggplot2::geom_tile(ggplot2::aes_string(color = "color."),
                              fill = "white") +
-          ggplot2::scale_color_manual(values = "grey75", na.translate = FALSE,
+          ggplot2::scale_color_manual(values = "grey85", na.translate = FALSE,
                                       na.value = "transparant") +
           ggplot2::guides(color = "none")
       }
@@ -894,12 +921,14 @@ plot.TD <- function(x,
                                                     y = "y - 0.5",
                                                     yend = "y + 0.5",
                                                     linetype = "'subBlocks'"),
-                                data = subBlockBord$vertW, size = 0.4) +
+                                data = subBlockBord$vertW, size = 0.6,
+                                color = "blue") +
           ggplot2::geom_segment(ggplot2::aes_string(x = "x - 0.5",
                                                     xend = "x + 0.5",
                                                     y = "y - 0.5",
                                                     yend = "y - 0.5"),
-                                data = subBlockBord$horW, size = 0.4)
+                                data = subBlockBord$horW, size = 0.6,
+                                color = "blue")
       }
       if (showGeno) {
         ## Add names of genotypes to the center of the tiles.
@@ -927,14 +956,15 @@ plot.TD <- function(x,
       }
       if (plotSubBlock || plotRep) {
         shwVals <- c(plotRep, plotSubBlock)
+        newAes <- list(size = c(1, 0.6)[shwVals],
+                       color = c("black", "blue")[shwVals])
         pTr <- pTr +
           ## Add a legend entry for replicates and subBlocks.
           ggplot2::scale_linetype_manual(c("replicates", "subBlocks")[shwVals],
                                          values = c("replicates" = "solid",
                                                     "subBlocks" = "solid")[shwVals],
                                          name = ggplot2::element_blank()) +
-          ggplot2::guides(linetype = ggplot2::guide_legend(override.aes =
-                                                             list(size = c(1, 0.4)[shwVals])))
+          ggplot2::guides(linetype = ggplot2::guide_legend(override.aes = newAes))
       }
       p[[trial]] <- pTr
       if (output) {
@@ -944,6 +974,9 @@ plot.TD <- function(x,
   } else if (plotType == "map") {
     ## Checks for colorTrialBy.
     colorTrialBy <- dotArgs$colorTrialBy
+    colTrial <- dotArgs$colTrial
+    printTrialsNames <- dotArgs$printTrialNames
+    chkChar(colTrial)
     if (!is.null(colorTrialBy)) {
       chkChar(colorTrialBy, len = 1, null = FALSE)
       if (!all(sapply(X = x, FUN = function(trial) {
@@ -951,7 +984,7 @@ plot.TD <- function(x,
       }))) {
         stop("colorTrialBy should be a column in TD.\n")
       }
-      colorTrialGroups <- do.call(rbind, lapply(X = x, FUN = function(trial) {
+      colorTrialDat <- do.call(rbind, lapply(X = x, FUN = function(trial) {
         ## Assure that coloring by trial is possible by using unique within
         ## column selection. Not doing so results in a column named trial.1
         ## causing problems when referring to trial later on.
@@ -962,6 +995,31 @@ plot.TD <- function(x,
         }
         return(colorTrial)
       }))
+    } else {
+      colorTrialDat <- unique(do.call(rbind, lapply(X = x, FUN = `[`, "trial")))
+      colorTrialDat[[".colorTrialBy"]] <- factor(1)
+      colorTrialBy <- ".colorTrialBy"
+    }
+    colorTrialDat <- droplevels(colorTrialDat)
+    nColTrial <- nlevels(colorTrialDat[[colorTrialBy]])
+    if (length(colTrial) == 0) {
+      ## Defaults to black for one color for trials.
+      ## For more than one colors from statgen.trialColors are used.
+      ## Fall back to topo.colors if number of colors in option is too small.
+      if (nColTrial == 1) {
+        colTrial <- "red"
+      } else if (length(getOption("statgen.trialColors")) >= nColTrial) {
+        colTrial <- getOption("statgen.trialColors")[1:nColTrial]
+      } else {
+        colTrial <- topo.colors(n = nColTrial, alpha = NULL)
+      }
+    } else {
+      nColTrialArg <- length(colTrial)
+      if (nColTrialArg != nColTrial) {
+        stop("Number of colors provided doesn't match number of trial ",
+             "groups:\n", nColTrialArg, " colors provided, ", nColTrial,
+             " groups in data.\n")
+      }
     }
     ## Check for latitude and longitude.
     minLatRange <- dotArgs$minLatRange
@@ -984,14 +1042,15 @@ plot.TD <- function(x,
     ## Population has a random value but if left out nothing is plotted.
     locs <- setNames(getMeta(x)[c("trLocation", "trLat", "trLong")],
                      c("name", "lat", "long"))
+    locs[["trial"]] <- rownames(locs)
     ## Merge groups for coloring text.
-    if (!is.null(colorTrialBy)) {
-      locs <- merge(locs, colorTrialGroups, by = "row.names")
-      if (any(table(unique(locs[c("name", colorTrialBy)])) > 1)) {
-        stop("colorTrialBy should be unique within locations.\n")
-      }
+    locs <- merge(locs, colorTrialDat, by.x = "row.names", by.y = "trial")
+    if (any(table(unique(locs[c("name", colorTrialBy)])) > 1)) {
+      stop("colorTrialBy should be unique within locations.\n")
     }
-    locs <- unique(locs[!is.na(locs$lat) & !is.na(locs$long), ])
+    ## Drop Row.names column created when merging.
+    locs <- unique(locs[!is.na(locs[["lat"]]) & !is.na(locs[["long"]]),
+                        c("name", "lat", "long", colorTrialBy)])
     if (nrow(locs) == 0) {
       stop("At least one trial should have latitude and longitude ",
            "for plotting on map.\n")
@@ -1014,8 +1073,10 @@ plot.TD <- function(x,
                                                    color = colorTrialBy),
                      data = locs, size = 3, nudge_x = 0.01 * diff(longR),
                      nudge_y = 0.04 * diff(latR))
-    if (is.null(colorTrialBy)) {
-      textArgs <- c(textArgs, list(color = "red"))
+    if (is.null(title)) {
+      plotTitle <- "Trial locations"
+    } else {
+      plotTitle <- title
     }
     p <- ggplot2::ggplot(mapDat, ggplot2::aes_string(x = "long", y = "lat")) +
       ggplot2::geom_polygon(ggplot2::aes_string(group = "group"), fill = "white",
@@ -1023,14 +1084,26 @@ plot.TD <- function(x,
       ## Add a proper map projection.
       ggplot2::coord_map(clip = "on", xlim = longR, ylim = latR) +
       ## Add trial locations.
-      ggplot2::geom_point(data = locs) +
-      do.call(ggrepel::geom_text_repel, args = textArgs) +
+      ggplot2::geom_point(data = locs,
+                          ggplot2::aes_string(color = colorTrialBy),
+                          show.legend = isFALSE(printTrialsNames) &
+                            colorTrialBy != ".colorTrialBy") +
+      ggplot2::scale_color_manual(values = colTrial) +
       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                      panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank(),
                      ## Empty space left represents water areas. Color blue.
                      panel.background = ggplot2::element_rect(fill = "steelblue2")) +
-      ggplot2::ggtitle("Trial locations")
+      ggplot2::ggtitle(plotTitle)
+    if (!isFALSE(printTrialsNames)) {
+      p <- p +
+        ggrepel::geom_text_repel(mapping = ggplot2::aes_string(label = "name",
+                                                               color = colorTrialBy),
+                                 data = locs, size = 3,
+                                 nudge_x = 0.01 * diff(longR),
+                                 nudge_y = 0.04 * diff(latR),
+                                 show.legend = colorTrialBy != ".colorTrialBy")
+    }
     if (output) {
       plot(p)
     }
@@ -1054,6 +1127,8 @@ plot.TD <- function(x,
     }))) {
       stop("colorTrialBy should be a column in TD.\n")
     }
+    colTrial <- dotArgs$colTrial
+    chkChar(colTrial)
     orderBy <- dotArgs$orderBy
     if (!is.null(orderBy)) {
       orderBy <- match.arg(orderBy, choices = c("alphabetic", "ascending",
@@ -1062,6 +1137,7 @@ plot.TD <- function(x,
       orderBy <- "alphabetic"
     }
     p <- setNames(vector(mode = "list", length = length(traits)), traits)
+    colorTrialByIn <- colorTrialBy
     for (trait in traits) {
       ## Create a single data.frame from x with only columns trial, trait and
       ## genotype.
@@ -1085,6 +1161,34 @@ plot.TD <- function(x,
                 "Plot skipped.\n", call. = FALSE)
         next
       }
+      if (is.null(colorTrialBy)) {
+        plotDat[[".colorTrialBy"]] <- factor(1)
+        colorTrialBy <- ".colorTrialBy"
+      }
+      ## colorTrialBy is ignored in plot if it is not a factor.
+      if (!is.null(colorTrialBy) && !is.factor(plotDat[colorTrialBy])) {
+        plotDat[colorTrialBy] <- factor(plotDat[[colorTrialBy]])
+      }
+      nColTrial <- nlevels(plotDat[[colorTrialBy]])
+      if (length(colTrial) == 0) {
+        ## Defaults to darkgrey for one color for trials.
+        ## For more than one colors from statgen.trialColors are used.
+        ## Fall back to topo.colors if number of colors in option is too small.
+        if (nColTrial == 1) {
+          colTrial <- "darkgrey"
+        } else if (length(getOption("statgen.trialColors")) >= nColTrial) {
+          colTrial <- getOption("statgen.trialColors")[1:nColTrial]
+        } else {
+          colTrial <- topo.colors(n = nColTrial, alpha = NULL)
+        }
+      } else {
+        nColTrialArg <- length(colTrial)
+        if (nColTrialArg != nColTrial) {
+          stop("Number of colors provided doesn't match number of trial ",
+               "groups:\n", nColTrialArg, " colors provided, ", nColTrial,
+               " groups in data.\n")
+        }
+      }
       if (orderBy != "alphabetic") {
         ## Reorder levels in trial so plotting is done according to orderBy.
         ## do.call needed since order doesn't accept a vector as input.
@@ -1096,33 +1200,33 @@ plot.TD <- function(x,
           plotDat[xVar] <- factor(plotDat[[xVar]], levels = rev(levels(levNw)))
         }
       }
-      ## colorTrialBy is ignored in plot if it is not a factor.
-      if (!is.null(colorTrialBy) && !is.factor(plotDat[colorTrialBy])) {
-        plotDat[colorTrialBy] <- factor(plotDat[[colorTrialBy]])
+      if (is.null(title)) {
+        plotTitle <- paste("Boxplot for", trait)
+      } else {
+        plotTitle <- title
       }
       ## Create boxplot.
       pTr <- ggplot2::ggplot(plotDat,
                              ggplot2::aes_string(x = paste0("`", xVar, "`"),
                                                  y = paste0("`", trait, "`"),
-                                                 fill = if (is.null(colorTrialBy)) 1 else
-                                                   paste0("`", colorTrialBy, "`"))) +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
+                                                 fill = colorTrialBy)) +
+        ggplot2::geom_boxplot(na.rm = TRUE,
+                              show.legend = colorTrialBy != ".colorTrialBy") +
+        ggplot2::scale_fill_manual(values = colTrial) +
+        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                       axis.text.x = ggplot2::element_text(angle = 90,
                                                            vjust = 0.5,
                                                            hjust = 1),
                        panel.background = ggplot2::element_blank(),
                        panel.grid = ggplot2::element_blank(),
                        panel.border = ggplot2::element_rect(color = "black",
                                                             fill = NA)) +
-        ggplot2::labs(x = xVar, y = trait)
-      if (is.null(colorTrialBy)) {
-        pTr <- pTr + ggplot2::geom_boxplot(na.rm = TRUE, fill = "darkgrey")
-      } else {
-        pTr <- pTr + ggplot2::geom_boxplot(na.rm = TRUE)
-      }
+        ggplot2::labs(x = xVar, y = trait, title = plotTitle)
       p[[trait]] <- pTr
       if (output) {
         plot(pTr)
       }
+      colorTrialBy <- colorTrialByIn
     }
   } else if (plotType == "cor") {
     if (length(trials) == 1) {
@@ -1147,6 +1251,7 @@ plot.TD <- function(x,
                 "Plot skipped.\n", call. = FALSE)
         next
       }
+      plotDat <- droplevels(plotDat)
       ## Create table with values trait per genotype per trial.
       ## If TD already contains BLUEs/BLUPs taking means doesn't do anything
       ## but it is needed for raw data where there can be replicates.
@@ -1216,6 +1321,11 @@ plot.TD <- function(x,
       ## Select bottom right triangle for correlations and top for variances.
       meltedCorMatLow <- meltedCorMat[as.numeric(meltedCorMat[["trial1"]]) >
                                         as.numeric(meltedCorMat[["trial2"]]), ]
+      if (is.null(title)) {
+        plotTitle <- paste("Correlations of trials for", trait)
+      } else {
+        plotTitle <- title
+      }
       ## Create plot.
       pTr <- ggplot2::ggplot(data = meltedCorMatLow,
                              ggplot2::aes_string("trial1", "trial2")) +
@@ -1237,8 +1347,7 @@ plot.TD <- function(x,
                        ## Center title.
                        plot.title = ggplot2::element_text(hjust = 0.5)) +
         ## No axis and legend titles.
-        ggplot2::labs(title = paste("Correlations of trials for", trait),
-                      x = "", y = "", fill = "") +
+        ggplot2::labs(title = plotTitle, x = "", y = "", fill = "") +
         ## Equal coordinates to get a square sized plot.
         ggplot2::coord_equal()
       p[[trait]] <- pTr
@@ -1260,6 +1369,8 @@ plot.TD <- function(x,
     }))) {
       stop("colorGenoBy should be a column in TD.\n")
     }
+    colGeno <- dotArgs$colGeno
+    chkChar(colGeno)
     colorTrialBy <- dotArgs$colorTrialBy
     if (!is.null(colorTrialBy)) {
       chkChar(colorTrialBy, len = 1, null = FALSE)
@@ -1269,6 +1380,8 @@ plot.TD <- function(x,
     }))) {
       stop("colorTrialBy should be a column in TD.\n")
     }
+    colTrial <- dotArgs$colTrial
+    chkChar(colTrial)
     trialOrder <- dotArgs$trialOrder
     if (!is.null(trialOrder) &&
         (!all(trialOrder %in% trials) || !all(trials %in% trialOrder))) {
@@ -1283,19 +1396,47 @@ plot.TD <- function(x,
     if (!is.null(colorTrialBy)) {
       colorTrialDat <- unique(do.call(rbind, lapply(X = x, FUN = `[`,
                                                     c("trial", colorTrialBy))))
-      colorTrialGroups <- unique(colorTrialDat[[2]])
-      colorTrialColors <- setNames(hcl.colors(length(colorTrialGroups),
-                                              palette = hcl.pals("diverging")[1]),
-                                   colorTrialGroups)
-      histCols <- setNames(colorTrialColors[match(colorTrialDat[[2]],
-                                                  colorTrialGroups)],
-                           make.names(paste0("t", colorTrialDat[[1]])))
+    } else {
+      colorTrialDat <- unique(do.call(rbind, lapply(X = x, FUN = `[`, "trial")))
+      colorTrialDat[[".colorTrialBy"]] <- factor(1)
+      colorTrialBy <- ".colorTrialBy"
     }
+    if (!is.factor(colorTrialDat[[2]])) {
+      colorTrialDat[[2]] <- as.factor(colorTrialDat[[2]])
+    }
+    colorTrialGroups <- levels(colorTrialDat[[2]])
+    nColTrial <- length(colorTrialGroups)
+    if (length(colTrial) == 0) {
+      ## Defaults to black for one color for trials.
+      ## For more than one colors from statgen.trialColors are used.
+      ## Fall back to topo.colors if number of colors in option is too small.
+      if (nColTrial == 1) {
+        colTrial <- "grey50"
+      } else if (length(getOption("statgen.trialColors")) >= nColTrial) {
+        colTrial <- getOption("statgen.trialColors")[1:nColTrial]
+      } else {
+        colTrial <- topo.colors(n = nColTrial, alpha = NULL)
+      }
+    } else {
+      nColTrialArg <- length(colTrial)
+      if (nColTrialArg != nColTrial) {
+        stop("Number of colors provided doesn't match number of trial ",
+             "groups:\n", nColTrialArg, " colors provided, ", nColTrial,
+             " groups in data.\n")
+      }
+    }
+    colorTrialColors <- setNames(colTrial, colorTrialGroups)
+    histCols <- setNames(colorTrialColors[match(colorTrialDat[[2]],
+                                                colorTrialGroups)],
+                         make.names(paste0("t", colorTrialDat[[1]])))
     p <- setNames(vector(mode = "list", length = length(traits)), traits)
     for (trait in traits) {
       ## Create plot title.
-      plotTitle <- ifelse(!is.null(dotArgs$title), dotArgs$title,
-                          paste("Scatterplots of trials for", trait))
+      if (is.null(title)) {
+        plotTitle <- paste("Scatterplots of trials for", trait)
+      } else {
+        plotTitle <- title
+      }
       ## Create a single data.frame from x with only columns genotype, trial
       ## and trait.
       ## trials where trait is not measured/available are removed by setting
@@ -1307,19 +1448,20 @@ plot.TD <- function(x,
           trial[c("genotype", "trial", trait, colorGenoBy)]
         }
       }))
-      if (!is.null(plotDat)) {
-        plotDat <- droplevels(plotDat)
-      }
       if (is.null(plotDat) || nlevels(plotDat[["trial"]]) < 2) {
         warning(trait, " has no valid observations for a least two trials.\n",
                 "Plot skipped.\n", call. = FALSE)
         next
       }
+      plotDat <- droplevels(plotDat)
+      if (!is.null(colorGenoBy) && !is.factor(plotDat[[colorGenoBy]])) {
+        plotDat[[colorGenoBy]] <- as.factor(plotDat[[colorGenoBy]])
+      }
       if (!is.null(trialOrder)) {
         ## Reorder trials.
         ## First restrict reordering to trials left after removing NA trials.
         trialOrderTr <- trialOrder[trialOrder %in% levels(plotDat[["trial"]])]
-        plotDat[["trial"]] <- factor(plotDat[["trial"]], trialOrderTr)
+        plotDat[["trial"]] <- factor(plotDat[["trial"]], levels = trialOrderTr)
       }
       ## Create table with values trait per genotype per trial.
       ## If TD already contains BLUEs/BLUPs taking means doesn't do anything
@@ -1365,9 +1507,7 @@ plot.TD <- function(x,
                         ggplot2::aes_string(x = trial,
                                             y = "(..count..)/sum(..count..)")) +
           ggplot2::geom_histogram(na.rm = TRUE, binwidth = binWidth,
-                                  boundary = 0,
-                                  fill = if (is.null(colorTrialBy)) "grey50" else
-                                    histCols[trial],
+                                  boundary = 0, fill = histCols[trial],
                                   color = "grey50") +
           ggplot2::scale_x_continuous(limits = range(plotTab, na.rm = TRUE)) +
           ggplot2::theme(panel.background = ggplot2::element_blank(),
@@ -1395,25 +1535,54 @@ plot.TD <- function(x,
                          timevar = "trial", times = colnames(plotTab),
                          idvar = "genotype", ids = rownames(plotTab),
                          v.names = trait)
+      ## Reshaping loses factor levels. Reset them for trial so trial order
+      ## matches that from histograms.
+      plotTab[["trial"]] <- factor(plotTab[["trial"]],
+                                   levels = levels(plotDat[["trial"]]))
       if (!is.null(colorGenoBy)) {
         plotTab <- merge(plotTab, unique(plotDat[c("genotype", colorGenoBy)]))
+      } else {
+        plotTab[[".colorGenoBy"]] <- factor(1)
+        colorGenoBy <- ".colorGenoBy"
       }
       ## Merge to itself to create a full data set.
       plotTab <- merge(plotTab, plotTab, by = c("genotype", colorGenoBy))
-      if (!is.null(colorTrialBy)) {
+      if (colorTrialBy != ".colorTrialBy") {
         legendDat <- merge(colorTrialDat, colorTrialColors, by.x = colorTrialBy,
                            by.y = "row.names")
         plotTab <- merge(plotTab, legendDat, by.x = "trial.y", by.y = "trial")
         colnames(plotTab)[colnames(plotTab) == colnames(legendDat)[2]] <-
           colorTrialBy
       }
-      ## Create a facet plot containing only scatterplots.
+      ## Create a facet plot containing only scatter plots.
+      nColGeno <- nlevels(plotTab[[colorGenoBy]])
+      if (length(colGeno) == 0) {
+        ## Defaults to "darkgrey" for one color for genotypes.
+        ## For more than one colors from statgen.genoColors are used.
+        ## Fall back to topo.colors if number of colors in option is too small.
+        if (nColGeno == 1) {
+          colGeno <- "darkgrey"
+        } else if (length(getOption("statgen.genoColors")) >= nColGeno) {
+          colGeno <- getOption("statgen.genoColors")[1:nColGeno]
+        } else {
+          colGeno <- topo.colors(n = nColGeno, alpha = NULL)
+        }
+      } else {
+        nColGenoArg <- length(colGeno)
+        if (nColGenoArg != nColGeno) {
+          stop("Number of colors provided doesn't match number of genotype groups:",
+               "\n", nColGenoArg, " colors provided, ", nColGeno,
+               " groups in data.\n")
+        }
+      }
       scatterBase <-
         ggplot2::ggplot(data = plotTab,
                         ggplot2::aes_string(x = paste0(trait, ".x"),
                                             y = paste0(trait, ".y"),
-                                            color = if (is.null(colorGenoBy)) NULL else
-                                              paste0("`", colorGenoBy, "`"))) +
+                                            color = paste0("`", colorGenoBy, "`"))) +
+        ggplot2::geom_point(na.rm = TRUE, shape = 1,
+                            show.legend = colorGenoBy != ".colorGenoBy") +
+        ggplot2::scale_color_manual(values = colGeno) +
         ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
         ggplot2::scale_y_continuous(breaks = scales::breaks_extended(n = 3)) +
         ggplot2::facet_grid(facets = c("trial.y", "trial.x")) +
@@ -1424,14 +1593,7 @@ plot.TD <- function(x,
                        panel.grid = ggplot2::element_blank(),
                        panel.border = ggplot2::element_rect(color = "black",
                                                             fill = NA))
-      if (is.null(colorGenoBy)) {
-        scatterBase <- scatterBase +
-          ggplot2::geom_point(na.rm = TRUE, color = "darkgrey", shape = 1)
-      } else {
-        scatterBase <- scatterBase +
-          ggplot2::geom_point(na.rm = TRUE, shape = 1)
-      }
-      if (!is.null(colorTrialBy)) {
+      if (colorTrialBy != ".colorTrialBy") {
         scatterBase <- scatterBase +
           ggplot2::geom_point(ggplot2::aes_string(fill = colorTrialBy),
                               color = NA, na.rm = TRUE) +
@@ -1487,9 +1649,9 @@ plot.TD <- function(x,
 
 #' Get and set metadata for TD objects
 #'
-#' Functions for extracting and adding metadata for objects of class TD.\cr
+#' Functions for extracting and adding metadata for objects of class TD.\cr\cr
 #' \code{getMeta} extracts a data.frame with location, date, design, latitude,
-#' longitude, plotWidth and plotLength for all trials in TD.\cr\cr
+#' longitude, plot width and plot length for all trials in TD.\cr\cr
 #' \code{setMeta} adds metadata from a data.frame to an object of class TD. See
 #' details for the specifications of the data.frame.\cr\cr
 #' The most common use case is extracting metadata from a TD object, modifying
@@ -1609,7 +1771,7 @@ setMeta <- function(TD,
   return(TD)
 }
 
-#' Function for extracting for objects of class TD that keeps class.
+#' Function for extracting objects of class TD that keeps class.
 #'
 #' @noRd
 #' @keywords internal
@@ -1618,6 +1780,24 @@ setMeta <- function(TD,
   attr(r, "class") <- attr(x, "class")
   return(r)
 }
+
+#' Function for concatenating objects of class TD that keeps class.
+#'
+#' @noRd
+#' @keywords internal
+c.TD <- function(...) {
+  args <- list(...)
+  args <- lapply(X = args, FUN = unclass)
+  argNames <- unique(unlist(lapply(X = args, FUN = names)))
+  r <- do.call("c", args)
+  r <- lapply(X = r, FUN = function(trial) {
+    trial[["trial"]] <- factor(trial[["trial"]], levels = argNames)
+    return(trial)
+  })
+  class(r) <- c("TD", "list")
+  return(r)
+}
+
 
 #' Helper function for checking metadata structure for TD objects.
 #'

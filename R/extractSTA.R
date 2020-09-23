@@ -1,50 +1,30 @@
-#' Extract statistics from Fitted Models
+#' Extract statistics from fitted models
 #'
-#' This function is deprecated. Use \code{\link{extractSTA}} for extracting
-#' results from fitted models.
+#' Extract and calculate various results for fitted models such as BLUEs, BLUPs,
+#' unit errors and heritabilities. For a full list of results that can be
+#' extracted, see Details.\cr\cr
+#' The result(s) to extract are specified in \code{what}. If a single result is
+#' extracted, if possible, this result is returned as a data.frame. If this is
+#' not possible, the result is returned as a list. If multiple results are
+#' extracted at the same time, these are always returned as a list. Where
+#' relevant, this behavior can be changed by specifying \code{asDataFrame}.
+#' Results that are returned as data.frame are marked as such in the data.frame
+#' column in the table in Details.\cr\cr
+#' Most results can only be calculated if a model is fitted with genotype as
+#' fixed or with genotype as random. E.g. to compute heritabilies a model should
+#' be fitted with genotype as random effect. This is indicated in the list
+#' in Details with "F" and "R" respectively.
 #'
 #' Possible options for \code{what} are:
-#' \describe{
-#' \item{F - BLUEs}{Best Lineair Unbiased Estimators.}
-#' \item{F - seBLUES}{Standard errors of the BLUEs.}
-#' \item{R - BLUPs}{Best Lineair Unbiased Predictors.}
-#' \item{R - seBLUPs}{Standard errors of the BLUPs.}
-#' \item{F - ue}{Unit errors - only for \code{lme4} and \code{asreml}.}
-#' \item{R - heritability}{Heritability.}
-#' \item{F - varCompF}{Variance components for model with genotype as fixed
-#' component.}
-#' \item{R - varCompR}{Variance components for model with genotype as random
-#' component.}
-#' \item{R - varGen}{Genetic variance component(s).}
-#' \item{R - varErr}{Residual variance component(s) - only for \code{lme4}
-#' and \code{asreml}.}
-#' \item{R - varSpat}{Spatial variance components - only for \code{SpATS}.}
-#' \item{F - fitted}{Fitted values for the model with genotype as fixed
-#' component.}
-#' \item{F - residF}{Residuals for the model with genotype as fixed component.}
-#' \item{F - stdResF}{Standardized residuals for the model with genotype as
-#' fixed component}
-#' \item{R - rMeans}{Fitted values for the model with genotype as random
-#' component.}
-#' \item{R - ranEf}{Random genetic effects.}
-#' \item{F - residR}{Residuals for the model with genotype as random component.}
-#' \item{F - stdResR}{Standardized residuals for the model with genotype as
-#' random component}
-#' \item{F - wald}{Results of the wald test - only for \code{lme4} and
-#' \code{asreml}.}
-#' \item{F - CV}{Coefficient of variation - only for \code{lme4} and
-#' \code{asreml}.}
-#' \item{F - rDfF}{Residual degrees of freedom for the model with genotype as
-#' fixed component.}
-#' \item{R - rDfR}{Residual degrees of freedom for the model with genotype as
-#' random component.}
-#' \item{R - effDim}{Effective dimensions - only for \code{SpATS}.}
-#' \item{R - ratEffDim}{Ratio's of the effective dimensions -
-#' only for \code{SpATS}.}
-#' \item{F - sed}{Standard error of difference - only for \code{asreml}.}
-#' \item{F - lsd}{Least significant difference - only for \code{asreml}.}
-#' \item{all}{All available statistics.}
-#' }
+#'
+#' ```{r extractOpts, results="as.is", echo=FALSE}
+#' ## Generate table of options for extract from internal data.
+#' optsTab <- statgenSTA:::extractOptions[, c("result", "model", "description")]
+#' optsTab[["data.frame"]] <-
+#' ifelse(statgenSTA:::extractOptions[["asDataFrame"]] == 0, "", "yes")
+#' optsTab <- optsTab[order(optsTab[["model"]]), ]
+#' knitr::kable(optsTab, align = c("llll"), row.names = FALSE)
+#' ```
 #'
 #' @param STA An object of class STA.
 #' @param trials A character vector of trials for which the statistics should be
@@ -58,6 +38,8 @@
 #' fitted using a certain engine. If this is the case, this is indicated in the
 #' list with options in details.\cr
 #' If \code{what = "all"}, all available statistics are computed.
+#' @param asDataFrame Should the output be reshaped to a data.frame. This is
+#' only possible if the number of statistics to extract is one.
 #' @param keep A character vector of column(s) in the object of class
 #' \code{\link{TD}} used for modeling. These columns will be kept as output when
 #' computing fitted values, residuals, standardized residuals and rMeans.
@@ -72,15 +54,29 @@
 #'
 #' @seealso \code{\link{fitTD}}
 #'
+#' @examples
+#' ## Fit model using SpATS.
+#' myModel <- fitTD(TD = TDHeat05, design = "res.rowcol", traits = "yield")
+#'
+#' ## Extract all available statistics from the fitted model.
+#' extr <- extractSTA(myModel)
+#'
+#' ## Extract only the BLUEs from the fitted model.
+#' BLUEs <- extractSTA(myModel, what = "BLUEs")
+#'
+#' ## Extract only the BLUEs from the fitted model and keep trial as variable in
+#' ## the output.
+#' BLUEs2 <- extractSTA(myModel, what = "BLUEs", keep = "trial")
+#'
 #' @importFrom utils capture.output
 #' @export
-extract <- function(STA,
-                    trials = names(STA),
-                    traits = NULL,
-                    what = "all",
-                    keep = NULL,
-                    restoreColNames = FALSE) {
-  .Deprecated("extractSTA")
+extractSTA <- function(STA,
+                       trials = names(STA),
+                       traits = NULL,
+                       what = "all",
+                       asDataFrame = length(what) == 1 && what != "all",
+                       keep = NULL,
+                       restoreColNames = FALSE) {
   ## Checks.
   if (missing(STA) || !inherits(STA, "STA")) {
     stop("STA has to be an object of class STA.\n")
@@ -88,6 +84,17 @@ extract <- function(STA,
   trials <- chkTrials(trials, STA)
   chkChar(traits)
   chkChar(keep)
+  if (asDataFrame) {
+    if (length(what) > 1) {
+      stop("Converting output to data.frame is only possible if what has ",
+           "lenght 1.\n")
+    }
+    ## Trial is added to keep columns, but only if a trial column is
+    ## actually present in the data.
+    keep <- unique(c(if (length(STA) != 1 ||
+                         hasName(STA[[1]]$TD[[1]], "trial")) "trial",
+                     keep))
+  }
   resTot <- sapply(X = trials, FUN = function(trial) {
     STATr <- STA[[trial]]
     traitsTr <- chkTraits(traits, trial, STATr)
@@ -103,7 +110,7 @@ extract <- function(STA,
     ## Set useRepId to TRUE when it is used as fixed effect in the model.
     useRepId <- STATr$design %in% c("res.ibd", "res.rowcol", "rcbd")
     ## Extract statistics from fitted model.
-    result <- do.call(what = paste0("extract", tools::toTitleCase(engine)),
+    result <- do.call(what = paste0("extractSTA", tools::toTitleCase(engine)),
                       args = list(STA = STATr, traits = traitsTr, what = what,
                                   useRepId = useRepId, keep = keep,
                                   restore = restoreColNames))
@@ -112,8 +119,36 @@ extract <- function(STA,
     attr(x = result, which = "engine") <- engine
     return(result)
   }, simplify = FALSE)
-  return(createExtract(resTot,
-                       what = unique(sapply(resTot, names))))
+
+  if (asDataFrame) {
+    ## Get type of conversion that needs to be done.
+    ## 1 for simple row binding, 2 for conversion of nested list.
+    convertType <- extractOptions[extractOptions[["result"]] == what,
+                                  "asDataFrame"]
+    if (convertType == 0) {
+      warning("Conversion to data.frame not possible for ", what, ".\n",
+              "Returning the unconverted results.\n")
+      return(resTot)
+    } else if (convertType == 1) {
+      ## Bind data.frames in resTot together to one large data.frame.
+      resDf <- dfBind(unlist(resTot, recursive = FALSE))
+    } else if (convertType == 2) {
+      ## Extract nested results.
+      resNested <- sapply(X = resTot, FUN = `[`, what)
+      ## Get traits from result.
+      traitsRes <- unique(unlist(sapply(X = resNested, names)))
+      ## Create a base data.frame for the output.
+      resDf <- data.frame(trial = names(resTot), stringsAsFactors = FALSE)
+      for (trait in traitsRes) {
+        ## Fill values for current trait.
+        ## This respects missing values.
+        resDf[[trait]] <- sapply(X = resNested, FUN = `[`, trait)
+      }
+    }
+    return(resDf)
+  } else {
+    return(resTot)
+  }
 }
 
 #' Extract statistics from model fitted using SpATS
@@ -121,12 +156,12 @@ extract <- function(STA,
 #' @noRd
 #' @importFrom SpATS predict.SpATS
 #' @keywords internal
-extractSpATS <- function(STA,
-                         traits = NULL,
-                         what = "all",
-                         keep = NULL,
-                         useRepId,
-                         restore = FALSE) {
+extractSTASpATS <- function(STA,
+                            traits = NULL,
+                            what = "all",
+                            keep = NULL,
+                            useRepId,
+                            restore = FALSE) {
   mf <- STA$mFix[names(STA$mFix) %in% traits]
   mr <- STA$mRand[names(STA$mRand) %in% traits]
   TD <- STA$TD[[1]]
@@ -224,6 +259,12 @@ extractSpATS <- function(STA,
   if ("varGen" %in% what) {
     result[["varGen"]] <- sapply(X = mr, FUN = function(mr0) {
       unname(mr0$var.comp[predicted])
+    })
+  }
+  ## Extract residual variance.
+  if ("varErr" %in% what) {
+    result[["varErr"]] <- sapply(X = mr, FUN = function(mr0) {
+      unname(mr0$psi[1])
     })
   }
   ## Extract spatial variance.
@@ -348,17 +389,17 @@ extractSpATS <- function(STA,
 #'
 #' @noRd
 #' @keywords internal
-extractLme4 <- function(STA,
-                        traits = NULL,
-                        what = "all",
-                        keep = NULL,
-                        useRepId,
-                        restore = FALSE) {
+extractSTALme4 <- function(STA,
+                           traits = NULL,
+                           what = "all",
+                           keep = NULL,
+                           useRepId,
+                           restore = FALSE) {
   mf <- STA$mFix[names(STA$mFix) %in% traits]
   mr <- STA$mRand[names(STA$mRand) %in% traits]
   TD <- STA$TD[[1]]
   renCols <- attr(TD, "renamedCols")
-  predicted = STA$predicted
+  predicted <- STA$predicted
   whatPred <- c("BLUEs", "seBLUEs", "BLUPs", "seBLUPs", "ranEf")
   what <- extractOptSel(what = what, fixed = !is.null(mf),
                         random = !is.null(mr), engine = "lme4")
@@ -582,12 +623,12 @@ extractLme4 <- function(STA,
 #'
 #' @noRd
 #' @keywords internal
-extractAsreml <- function(STA,
-                          traits = NULL,
-                          what = "all",
-                          keep = NULL,
-                          useRepId,
-                          restore = FALSE) {
+extractSTAAsreml <- function(STA,
+                             traits = NULL,
+                             what = "all",
+                             keep = NULL,
+                             useRepId,
+                             restore = FALSE) {
   if (!requireNamespace("asreml", quietly = TRUE)) {
     stop("asreml cannot be successfully loaded.\n")
   }
@@ -932,7 +973,7 @@ restoreColNames <- function(renDat,
                             restore = FALSE) {
   if (restore && !is.null(renamedCols)) {
     renCols <- colnames(renDat)
-    ## Get original columnnames from renamedCols data.frame.
+    ## Get original column names from renamedCols data.frame.
     origCols <- sapply(X = renCols, FUN = function(renCol) {
       if (renCol %in% renamedCols$new) {
         renamedCols$orig[renCol == renamedCols$new]

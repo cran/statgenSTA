@@ -13,6 +13,7 @@
   plotType = c("base", "spatial"),
   spaTrend = c("raw", "percentage"),
   outCols = ifelse(plotType == "base", 2, 3),
+  title = NULL,
   output = TRUE
 )
 }
@@ -32,7 +33,7 @@ genotype as fixed (\code{what = "fixed"}) or genotype as random
 (\code{what = "random"}) factor should be plotted.
 If \code{x} contains only one model this model is chosen automatically.}
 
-\item{plotType}{A Character string indicating whether \code{base} plots or
+\item{plotType}{A character string indicating whether \code{base} plots or
 \code{spatial} plots should be made.}
 
 \item{spaTrend}{A character string indicating how the spatial trend should
@@ -45,6 +46,10 @@ results are shown as a percentage.}
 displaying the plots. Usually the default of 2 for base plots and 3 for
 spatial plots will be fine, but decreasing the numbers may help for nicer
 printing.}
+
+\item{title}{A character string used a title for the plot. Note that when
+a title is specified and multiple plots are created, all plots will get the
+same title.}
 
 \item{output}{Should the plot be output to the current device? If
 \code{FALSE} only a list of ggplot objects is invisibly returned.}
@@ -87,10 +92,10 @@ plot(myModel, what = "fixed", plotType = "spatial", spaTrend = "percentage")
 
 }
 \seealso{
-Other STA: 
+Other functions for STA objects: 
 \code{\link{STAtoCross}()},
 \code{\link{STAtoTD}()},
 \code{\link{report.STA}()},
 \code{\link{summary.STA}()}
 }
-\concept{STA}
+\concept{functions for STA objects}

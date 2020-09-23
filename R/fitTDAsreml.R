@@ -23,7 +23,7 @@ fitTDAsreml <- function(TD,
   if (missing(TD) || !inherits(TD, "TD")) {
     stop("TD should be a valid object of class TD.\n")
   }
-  ## Only perform other checks if explicitely stated.
+  ## Only perform other checks if explicitly stated.
   ## Provides the opportunity to skip check if already done in fitTD.
   if (checks) {
     ## Checks.
@@ -49,7 +49,7 @@ fitTDAsreml <- function(TD,
   # Check if spatial models can be fitted.
   if (spatial) {
     ## Set default value for criterion
-    criterion = "AIC"
+    criterion <- "AIC"
     if ("criterion" %in% names(control)) {
       critCt <- control$criterion
       if (critCt %in% c("AIC", "BIC")) {
@@ -89,10 +89,17 @@ fitTDAsreml <- function(TD,
   if (!spatial) {
     ## Increase max number of iterations for asreml.
     maxIter <- 200
+    ## In asreml3 na.method.X and na.method.Y are used.
+    ## In asreml4 this is replaced by na.action.
+    asrArgs0 <- list(aom = TRUE, maxiter = maxIter, trace = FALSE) #, ...)
+    if (asreml4()) {
+      asrArgs0 <- c(asrArgs0, list(na.action = asreml::na.method(x = "include")))
+    } else {
+      asrArgs0 <- c(asrArgs0, list(na.method.X = "include"))
+    }
     ## Create empty base lists.
-    mr <- mf <- spatial <- sumTab <- setNames(vector(mode = "list",
-                                                     length = length(traits)),
-                                              traits)
+    mr <- mf <- spatial <- sumTab <-
+      setNames(vector(mode = "list", length = length(traits)), traits)
     for (trait in traits) {
       if ("random" %in% what) {
         ## Fit model with genotype random.
@@ -100,13 +107,14 @@ fitTDAsreml <- function(TD,
           if (all(is.na(TDTr[[trait]]))) {
             stop("Only NA values for trait ", trait, " in trial ", trial, ".\n")
           }
-          asreml::asreml(fixed = formula(paste0("`", trait, "`", fixedForm)),
-                         random = formula(paste("~", randomForm,
-                                                if (length(randomForm) != 0) "+",
-                                                "genotype")),
-                         aom = TRUE, data = TDTr, maxiter = maxIter,
-                         trace = FALSE, ...)
-          })
+          asrArgsR <- c(asrArgs0,
+                        list(fixed = formula(paste0("`", trait, "`", fixedForm)),
+                             random = formula(paste("~", randomForm,
+                                                    if (length(randomForm) != 0) "+",
+                                                    "genotype")),
+                             data = TDTr))
+          do.call(asreml::asreml, args = asrArgsR)
+        })
         if (!is.null(mrTrait$warning)) {
           mrTrait <- chkLastIter(mrTrait)
           mrTrait <- wrnToErr(mrTrait)
@@ -151,30 +159,20 @@ fitTDAsreml <- function(TD,
         if (!"random" %in% what) {
           GParamTmp <- NULL
         }
-        ## There is no way to specify random as NULL or NA so therefore split
-        ## cases on whether there is or there is not a random term.
-        if (length(randomForm) != 0) {
-          mfTrait <- tryCatchExt({
-            if (all(is.na(TDTr[[trait]]))) {
-              stop("Only NA values for trait ", trait, " in trial ", trial, ".\n")
-            }
-            asreml::asreml(fixed = formula(paste0("`", trait, "`", fixedForm,
-                                                  "+ genotype")),
-                           random = formula(paste("~", randomForm)),
-                           G.param = GParamTmp, aom = TRUE, data = TDTr,
-                           maxiter = maxIter, trace = FALSE, ...)
-            })
-        } else {
-          mfTrait <- tryCatchExt({
-            if (all(is.na(TDTr[[trait]]))) {
-              stop("Only NA values for trait ", trait, " in trial ", trial, ".\n")
-            }
-            asreml::asreml(fixed = formula(paste0("`", trait, "`", fixedForm,
-                                                  "+ genotype")),
-                           G.param = GParamTmp, aom = TRUE, data = TDTr,
-                           maxiter = maxIter, trace = FALSE, ...)
-            })
-        }
+        mfTrait <- tryCatchExt({
+          if (all(is.na(TDTr[[trait]]))) {
+            stop("Only NA values for trait ", trait, " in trial ", trial, ".\n")
+          }
+          asrArgsF <- c(asrArgs0,
+                        list(fixed = formula(paste0("`", trait, "`", fixedForm,
+                                                    "+ genotype")),
+                             G.param = GParamTmp, data = TDTr))
+          if (length(randomForm) != 0) {
+            asrArgsF <- c(asrArgsF,
+                          list(random = formula(paste("~", randomForm))))
+          }
+          do.call(asreml::asreml, args = asrArgsF)
+        })
         if (!is.null(mfTrait$warning)) {
           mfTrait <- chkLastIter(mfTrait)
           mfTrait <- wrnToErr(mfTrait)
@@ -213,6 +211,9 @@ fitTDAsreml <- function(TD,
     ## Based on TDTr so dropped levels are dropped in output.
     ## Needs attribute from TD[trial].
     TDOut <- createTD(data = TDTr)
+    ## If trial was not a column in TDTr the name of the trial is lost and
+    ## replaced by "TDTr". To prevent this readd the name.
+    names(TDOut) <- trial
     attr(x = TDOut[[trial]], which = "renamedCols") <-
       attr(x = TDTr, which = "renamedCols")
     ## Construct STA object.
@@ -327,7 +328,7 @@ bestSpatMod <- function(TD,
           stop("Only NA values for trait ", trait, " in trial ", trial, ".\n")
         }
         do.call(what = asreml::asreml, args = asrArgsR)
-        }), file = tempfile())
+      }), file = tempfile())
       if (!is.null(mrTrait$warning)) {
         mrTrait <- chkLastIter(mrTrait)
         mrTrait <- wrnToErr(mrTrait)
@@ -347,16 +348,18 @@ bestSpatMod <- function(TD,
       }
       ## Fill model summary table.
       modSum[i, "spatial"] <- spatCh[i]
-      modSum[i, "random"] <- randTerm[i]
+      modSum[i, "random"] <- if (randTerm[i] == "NULL") NA else randTerm[i]
       modSum[i, "converge"] <- isTRUE(!is.null(mrTrait) & mrTrait$converge)
-      if (!is.null(mrTrait)) {
-        summ <- summary(mrTrait)$varcomp["component"]
-        modSum[i, "AIC"] <- -2 * mrTrait$loglik + 2 * nrow(summ)
+      if (!is.null(mrTrait) && mrTrait$converge) {
+        ## Compute number of parameters as number of unbound rows in varcomp.
+        nPar <- sum(summary(mrTrait)$varcomp[["bound"]] != "B")
+        modSum[i, "AIC"] <- -2 * mrTrait$loglik + 2 * nPar
         modSum[i, "BIC"] <- -2 * mrTrait$loglik +
-          log(length(fitted(mrTrait))) * nrow(summ)
+          log(length(fitted(mrTrait))) * nPar
         ## Row and column output differs for regular/non-regular.
         ## Always max. one of the possibilities is in summary so rowVal and
         ## colVal are always a single value.
+        summ <- summary(mrTrait)$varcomp["component"]
         rowVal <- summ[rownames(summ) %in%
                          c("R!rowId.cor", "R!rowCoord.pow", "R!pow",
                            ## New naming for asreml4.

@@ -70,7 +70,7 @@ createSTA <- function(models) {
 #' ## Print a summary of the fitted model.
 #' summary(myModel)
 #'
-#' @family STA
+#' @family functions for STA objects
 #'
 #' @export
 summary.STA <- function(object,
@@ -96,9 +96,9 @@ summary.STA <- function(object,
   if (is.null(trait)) {
     trait <- object[[trials[1]]]$traits
   }
-  ## If sortBy not provided sort by BLUEs if available BLUPs otherwise.
-  ## If sortBy is provided but only 1 of genotype fixed/ genotype random is
-  ## fitted ignore sortBy and overrule by available output.
+  ## If sortBy not provided, sort by BLUEs if available, BLUPs otherwise.
+  ## If sortBy is provided, but only 1 of genotype fixed/ genotype random is
+  ## fitted, ignore sortBy and overrule by available output.
   if (is.null(sortBy) || is.null(object[[trials[1]]]$mFix) ||
       is.null(object[[trials[1]]]$mRand)) {
     sortBy <- ifelse(!is.null(object[[trials[1]]]$mFix), "BLUEs", "BLUPs")
@@ -127,7 +127,7 @@ summary.STA <- function(object,
     }
     stats <- summary.TD(object = TD, traits = trait)
     ## get predicted means (BLUEs + BLUPs).
-    extr <- extract(object, trials = trials, traits = trait)[[trials]]
+    extr <- extractSTA(object, trials = trials, traits = trait)[[trials]]
     ## Merge results using a loop to avoid warnings over suffixes caused by
     ## merge when using Reduce.
     joinList <- Filter(f = Negate(f = is.null),
@@ -160,22 +160,26 @@ summary.STA <- function(object,
       meanTab <- meanTab[1:nBest, ]
       attr(x = meanTab, which = "nBest") <- nBest
     }
-    ## Extract selected spatial model when applicable.
+    ## Extract selected spatial model and
+    ## summary table for fitted spatial models when applicable.
     if (object[[trials]]$engine == "asreml" &&
         is.character(object[[trials]]$spatial[[trait]])) {
       selSpatMod <- object[[trials]]$spatial[[trait]]
+      spatSumTab <- object[[trials]]$sumTab[[trait]]
     } else {
       selSpatMod <- NULL
+      spatSumTab <- NULL
     }
     return(structure(list(selSpatMod = selSpatMod, stats = stats,
                           meanTab = meanTab, heritability = extr$heritability,
                           sed = data.frame("s.e.d" = extr$sed),
-                          lsd = data.frame("l.s.d." = extr$lsd)),
+                          lsd = data.frame("l.s.d." = extr$lsd),
+                          spatSumTab = spatSumTab),
                      class = c("summary.STA")))
   }
 }
 
-#' Printing summazed objects of class STA
+#' Printing summarized objects of class STA
 #'
 #' \code{print} method for object of class summary.STA created by summarizing
 #' objects of class STA.
@@ -194,8 +198,13 @@ print.summary.STA <- function(x,
     cat("Summary statistics for", x$what, "of", x$trait, "\n\n")
     print(x$sumTab)
   } else {
+    if (!is.null(x$spatSumTab)) {
+      cat("Overview of tried spatial models",
+          "\n================================\n")
+      print(x$spatSumTab, digits = digits)
+    }
     if (!is.null(x$selSpatMod)) {
-      cat("Selected spatial model: ", x$selSpatMod, "\n\n")
+      cat("\nSelected spatial model: ", x$selSpatMod, "\n\n")
     }
     cat("Summary statistics",
         "\n==================\n")
@@ -258,7 +267,7 @@ print.summary.STA <- function(x,
 #' genotype as fixed (\code{what = "fixed"}) or genotype as random
 #' (\code{what = "random"}) factor should be plotted.
 #' If \code{x} contains only one model this model is chosen automatically.
-#' @param plotType A Character string indicating whether \code{base} plots or
+#' @param plotType A character string indicating whether \code{base} plots or
 #' \code{spatial} plots should be made.
 #' @param spaTrend A character string indicating how the spatial trend should
 #' be displayed. Either "raw" (original scale), or "percentage". If
@@ -269,6 +278,9 @@ print.summary.STA <- function(x,
 #' displaying the plots. Usually the default of 2 for base plots and 3 for
 #' spatial plots will be fine, but decreasing the numbers may help for nicer
 #' printing.
+#' @param title A character string used a title for the plot. Note that when
+#' a title is specified and multiple plots are created, all plots will get the
+#' same title.
 #' @param output Should the plot be output to the current device? If
 #' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
@@ -287,7 +299,7 @@ print.summary.STA <- function(x,
 #' ## Create spatial plots showing the spatial trend as percentage.
 #' plot(myModel, what = "fixed", plotType = "spatial", spaTrend = "percentage")
 #'
-#' @family STA
+#' @family functions for STA objects
 #'
 #' @importFrom grDevices topo.colors colorRampPalette
 #' @export
@@ -299,6 +311,7 @@ plot.STA <- function(x,
                      plotType = c("base", "spatial"),
                      spaTrend = c("raw", "percentage"),
                      outCols = ifelse(plotType == "base", 2, 3),
+                     title = NULL,
                      output = TRUE) {
   ## Checks.
   trials <- chkTrials(trials, x)
@@ -306,6 +319,7 @@ plot.STA <- function(x,
   plotType <- match.arg(arg = plotType)
   chkNum(outCols, min = 1, null = FALSE, incl = TRUE)
   spaTrend <- match.arg(arg = spaTrend)
+  chkChar(title, len = 1)
   dotArgs <- list(...)
   p <- setNames(vector(mode = "list", length = length(trials)), trials)
   for (trial in trials) {
@@ -353,13 +367,12 @@ plot.STA <- function(x,
       }
       predicted <- x[[trial]]$predicted
       ## Extract fitted and predicted values from model.
-      fitted <- extract(x, trials = trial, traits = trait,
-                        what = ifelse(what == "fixed", "fitted", "rMeans"),
-                        keep = mergeCols)[[trial]][[ifelse(what == "fixed",
-                                                           "fitted", "rMeans")]]
+      fitted <- extractSTA(x, trials = trial, traits = trait,
+                           what = ifelse(what == "fixed", "fitted", "rMeans"),
+                           keep = mergeCols)
       predType <- ifelse(what == "fixed", "BLUEs", "BLUPs")
-      pred <- extract(x, trials = trial, traits = trait,
-                      what = predType)[[trial]][[predType]][c(predicted, trait)]
+      pred <- extractSTA(x, trials = trial, traits = trait,
+                         what = predType)[c(predicted, trait)]
       ## Extract raw data and compute residuals.
       response <- trDat[, c(predicted, trait, mergeCols)]
       ## Create plot data by merging extracted data together and renaming some
@@ -374,8 +387,11 @@ plot.STA <- function(x,
       ## Create empty list for storing plots.
       plots <- vector(mode = "list")
       ## Create main plot title.
-      plotTitle <- ifelse(!is.null(dotArgs$title), dotArgs$title,
-                          paste("Trial:", trial, "Trait:", trait))
+      if (is.null(title)) {
+        plotTitle <- paste("Trial:", trial, "Trait:", trait)
+      } else {
+        plotTitle <- title
+      }
       if (plotType == "base") {
         plotDat <- ggplot2::remove_missing(plotDat, na.rm = TRUE)
         ## Plot histogram of residuals.
@@ -528,7 +544,7 @@ plot.STA <- function(x,
                               title = legends[5], colors = colors)
         plots$p6 <-
           ggplot2::ggplot(data = plotDat) +
-          ggplot2::geom_histogram(ggplot2::aes(x = residuals),
+          ggplot2::geom_histogram(ggplot2::aes(x = pred),
                                   fill = "white", color = "black", bins = 10,
                                   boundary = 0, na.rm = TRUE) +
           ## Remove empty space between ticks and actual plot.
@@ -599,11 +615,11 @@ fieldPlot <- function(plotDat,
 #'
 #' pdf reports will be created containing a summary of the results of the
 #' fitted model(s). For all selected trails and traits a separate pdf file will
-#' be generatd. Also a .tex file and a folder containing figures will be
+#' be generated. Also a .tex file and a folder containing figures will be
 #' created for each report to enable easy modifying of the report.
 #'
 #' This function uses pdflatex to create a pdf report. For it to run correctly
-#' an installation of LaTeX is requiered. Checking for this is done with
+#' an installation of LaTeX is required. Checking for this is done with
 #' Sys.which("pdflatex").
 #'
 #' @param x An object of class STA.
@@ -616,9 +632,9 @@ fieldPlot <- function(plotDat,
 #' \code{FALSE} if low values of the trait indicate better performance.
 #' @param outfile A character string, the name and location of the output .pdf
 #' and .tex file for the report. If \code{NULL}, a report with a default name
-#' will be created in the current working directory. Trialname, traitname and
+#' will be created in the current working directory. Trial, trait and
 #' the type of model (genotype fixed or random) will be concatenated to the
-#' name of the outputfile.\cr
+#' name of the output file.\cr
 #' Both knitr and pdflatex don't work well with spaces in file paths and these
 #' are therefore disallowed. Relative paths are possible though.
 #' @param what A character vector indicating whether the fitted model with
@@ -630,8 +646,9 @@ fieldPlot <- function(plotDat,
 #'
 #' @examples
 #' ## Fit model using lme4.
-#' myModel1 <- fitTD(TD = TDHeat05, design = "ibd", traits = "yield")
-
+#' myModel1 <- fitTD(TD = TDHeat05, design = "ibd", traits = "yield",
+#'                   engine = "lme4")
+#'
 #' ## Create a pdf report summarizing the results for the model with genotype
 #' ## as fixed factor.
 #' \donttest{
@@ -645,7 +662,7 @@ fieldPlot <- function(plotDat,
 #' report(myModel1, outfile = tempfile(fileext = ".pdf"), descending = FALSE)
 #' }
 #'
-#' @family STA
+#' @family functions for STA objects
 #'
 #' @export
 report.STA <- function(x,
@@ -742,7 +759,7 @@ report.STA <- function(x,
 #' @seealso \code{\link[qtl]{read.cross}}
 #'
 #' @examples
-#' ## Run model using SpATS.
+#' ## Fit model using SpATS.
 #' myModel <- fitTD(TD = TDHeat05, design = "res.rowcol", traits = "yield",
 #'                  what = "fixed")
 #'
@@ -751,7 +768,8 @@ report.STA <- function(x,
 #' cross <- STAtoCross(myModel, genoFile = system.file("extdata", "markers.csv",
 #'                                                     package = "statgenSTA"))
 #'
-#' @family STA
+#' @family functions for STA objects
+#'
 #' @export
 STAtoCross <- function(STA,
                        trial = NULL,
@@ -780,7 +798,9 @@ STAtoCross <- function(STA,
     stop("genoFile is not a valid filename.\n")
   }
   ## Extract predictions from the model.
-  pred <- extract(STA, traits = traits, what = what)[[trial]][[what]]
+  pred <- extractSTA(STA, traits = traits, what = what)
+  ## Remove trial column.
+  pred <- pred[, colnames(pred) != "trial"]
   ## Rename first column to match first column in genoFile.
   colnames(pred)[1] <- colnames(utils::read.csv(genoFile, nrow = 1))[1]
   ## Write predictions to temporary file.
@@ -802,7 +822,7 @@ STAtoCross <- function(STA,
 #' Genotype-by-Environment (GxE) analysis the output first needs to be converted
 #' back to an TD object. This function does exactly that. It extracts BLUEs,
 #' BLUPs and their standard errors from the STA object and creates a new TD
-#' object using these. Also a column "wt" (weigth) may also be added. Weights
+#' object using these. Also a column "wt" (weight) may also be added. Weights
 #' are then calculated as 1/(SE BLUEs) ^ 2.
 #'
 #' Trial information for the trials in the STA object will be copied from the
@@ -815,7 +835,7 @@ STAtoCross <- function(STA,
 #' @param traits A character string containing the traits to be included in the
 #' TD object. If \code{NULL}, all traits are exported.
 #' @param keep Columns from the TD object used as input for the STA model to
-#' be copied to the output. see \code{\link{extract}} for possible columns to
+#' be copied to the output. see \code{\link{extractSTA}} for possible columns to
 #' copy. If if it is available in \code{TD}, the column \code{trial} will always
 #' be copied.
 #' @param addWt Should a column wt be added to the output? If \code{TRUE}
@@ -824,17 +844,17 @@ STAtoCross <- function(STA,
 #' will be named \code{wt_trait}.
 #'
 #' @examples
-#' ## Run model using SpATS.
+#' ## Fit model using SpATS.
 #' myModel <- fitTD(TD = TDHeat05, design = "res.rowcol", traits = "yield",
-#'                       what = "fixed")
+#'                  what = "fixed")
 #'
 #' ## Create TD object from the fitted model with BLUEs and standard errors.
-#' myTD <- STAtoTD(myModel)
+#' myTD <- STAtoTD(myModel, what = c("BLUEs", "seBLUEs"))
 #'
 #' ## Add a weight column in the output.
-#' myTDWt <- STAtoTD(myModel, addWt = TRUE)
+#' myTDWt <- STAtoTD(myModel, what = c("BLUEs", "seBLUEs"), addWt = TRUE)
 #'
-#' @family STA
+#' @family functions for STA objects
 #'
 #' @export
 STAtoTD <- function(STA,
@@ -883,9 +903,12 @@ STAtoTD <- function(STA,
   ## Create a list of data.frames with all statistics per trial.
   predTrTot <- lapply(X = names(STA), FUN = function(trial) {
     ## Extract predictions from the model.
-    predLst <- unlist(lapply(X = traits, FUN = function(trait) {
-      extract(STA, trials = trial, traits = trait, what = what, keep = keep)
-    }), recursive = FALSE)
+    predLst <- lapply(X = traits, FUN = function(trait) {
+      extractSTA(STA, trials = trial, traits = trait, what = what, keep = keep)
+    })
+    if (length(what) > 1) {
+      predLst <- unlist(predLst, recursive = FALSE)
+    }
     if (length(what) + addWt > 1) {
       ## Rename columns if more than one column per trait will appear in the
       ## output. Add the name of the statistic as prefix to the traits.
@@ -901,7 +924,11 @@ STAtoTD <- function(STA,
     ## Merge all statistics together. Because of the renaming above there is
     ## never a problem with duplicate columns and merging is done on all other
     ## columns than the traits.
-    predTr <- Reduce(f = merge, x = unlist(predLst, recursive = FALSE))
+    if (length(what) > 1) {
+      predTr <- Reduce(f = merge, x = unlist(predLst, recursive = FALSE))
+    } else {
+      predTr <- Reduce(f = merge, x = predLst)
+    }
     traitsTr <- traits[!sapply(X = predLst, FUN = is.null)]
     if (addWt && "seBLUEs" %in% what) {
       ## Add a wt column.

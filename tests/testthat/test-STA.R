@@ -16,19 +16,20 @@ test_that("checks in summary.STA functions properly", {
 
 test_that("summary.STA produces correct output for SpATS", {
   sumSp <- summary(modelSp)
-  expect_length(sumSp, 6)
+  expect_length(sumSp, 7)
   expect_null(sumSp$selSpatMod)
   expect_equal(nrow(sumSp$stats), 9)
   expect_equal(dim(sumSp$meanTab), c(15, 4))
   expect_equivalent(sumSp$heritability, 0.65)
   expect_equal(nrow(sumSp$sed), 0)
   expect_equal(nrow(sumSp$lsd), 0)
+  expect_null(sumSp$spatSumTab)
 })
 
 test_that("summary.STA produces correct output for lme4", {
   modelLm <- fitTD(testTD, design = "rowcol", traits = "t1", engine = "lme4")
   sumLm <- summary(modelLm)
-  expect_length(sumLm, 6)
+  expect_length(sumLm, 7)
   expect_null(sumLm$selSpatMod)
   expect_equal(nrow(sumLm$stats), 9)
   expect_equal(dim(sumLm$meanTab), c(15, 4))
@@ -37,20 +38,38 @@ test_that("summary.STA produces correct output for lme4", {
                     tolerance = 1e-5)
   expect_equal(nrow(sumLm$sed), 0)
   expect_equal(nrow(sumLm$lsd), 0)
+  expect_null(sumLm$spatSumTab)
 })
 
 test_that("summary.STA produces correct output for asreml", {
-  skip_on_cran()
+  skip_if_not_installed("asreml")
   modelAs <- fitTD(testTD, design = "rowcol", traits = "t1", engine = "asreml")
   sumAs <- summary(modelAs)
-  expect_length(sumAs, 6)
+  expect_length(sumAs, 7)
   expect_null(sumAs$selSpatMod)
   expect_equal(nrow(sumAs$stats), 9)
   expect_equal(dim(sumAs$meanTab), c(15, 4))
   expect_equivalent(sumAs$heritability, 0.615070547646503)
   expect_equal(nrow(sumAs$sed), 3)
   expect_equal(nrow(sumAs$lsd), 3)
+  expect_null(sumAs$spatSumTab)
 })
+
+test_that("summary.STA produces correct output for asreml with spatial models", {
+  skip_if_not_installed("asreml")
+  modelAsTs <- fitTD(testTD, design = "ibd", traits = "t1",
+                     spatial = TRUE, engine = "asreml")
+  sumAsTs <- summary(modelAsTs)
+  expect_length(sumAsTs, 7)
+  expect_equal(sumAsTs$selSpatMod, "none")
+  expect_equal(nrow(sumAsTs$stats), 9)
+  expect_equal(dim(sumAsTs$meanTab), c(15, 4))
+  expect_equivalent(sumAsTs$heritability, 0.615070384479675)
+  expect_equal(nrow(sumAsTs$sed), 3)
+  expect_equal(nrow(sumAsTs$lsd), 3)
+  expect_equal(dim(sumAsTs$spatSumTab), c(7, 10))
+})
+
 
 test_that("option sortBy functions properly for summary.STA", {
   sumSp1 <- summary(modelSp)
@@ -93,12 +112,18 @@ test_that("print.summary.STA functions properly", {
                     "Estimated heritability ",
                     "Predicted means (BLUEs & BLUPs) ") %in% sumSp))
   expect_false(any(grepl("Best", sumSp2)))
-  skip_on_cran()
+  skip_if_not_installed("asreml")
   modelAs <- fitTD(testTD, design = "rowcol", traits = "t1", engine = "asreml")
+  modelAsTs <- fitTD(testTD, design = "ibd", traits = "t1", spatial = TRUE,
+                     engine = "asreml")
   sumAs <- capture.output(summary(modelAs))
+  sumAsTs <- capture.output(summary(modelAsTs))
   expect_true(all(c("Standard Error of Difference (genotype modeled as fixed effect) ",
                     "Least Significant Difference (genotype modeled as fixed effect) ") %in%
                     sumAs))
+  expect_true(all(c("Overview of tried spatial models ",
+                    "Selected spatial model:  none ") %in%
+                    sumAsTs))
 })
 
 test_that("print.summary.STA functions properly for multiple trials", {
@@ -174,6 +199,7 @@ test_that("function STAtoTD functions properly", {
 
 test_that("checks in report.STA function properly", {
   skip_on_cran()
+  skip_on_ci()
   expect_error(report(modelSp, trials = "E2"),
                "trials has to be a character vector defining trials in modelSp")
   expect_error(report(modelSp, traits = 1),
@@ -192,6 +218,7 @@ test_that("checks in report.STA function properly", {
 test_that("function report.STA functions properly", {
   ## Reporting doesn't work on cran because of usage of pdflatex.
   skip_on_cran()
+  skip_on_ci()
   tmpFile <- tempfile(fileext = ".pdf")
   expect_silent(report(modelSp, trial = "E1", trait = "t1", outfile = tmpFile))
   expect_true(file.exists(paste0(tools::file_path_sans_ext(tmpFile),
