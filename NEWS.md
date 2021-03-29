@@ -1,3 +1,16 @@
+# statgenSTA 1.0.7
+
+* Heritablity is now rounded to two decimals for models fitted using asreml and lme4 as was already the case for SpATS.
+* The border color of the histograms in the scatter plots for TD objects now matches the fill.
+* A minor bug in outlierSTA occurring when a column trial is not available is fixed.
+* Default names of layout plots for TD objects are now the trial name instead of the location.
+* Layout plots now have an extra options sizeGeno, that can be used for specifying the text size of genotypes.
+* In layout plots the raw data of a specified trait can now be visualized using the traits parameter.
+* Layout plots now have extra options for specifying custom colors when highlighting genotypes (colHighlight) or sub blocks (colSubBlock).
+* The vignette has been updated using the data from the DROPS projects as in the other statgen packages.
+* Documentation for several functions has been improved by adding extra clarification and extra examples.
+* The data in TDMaize now has an extra column indicating the stress regime of the trials.
+
 # statgenSTA 1.0.6
 
 * Default colors for genotypes and trials have been improved. User specific default colors may now be set in the R options "statgen.colGeno" (for genotypes) and "statgen.colTrial" (for trials).

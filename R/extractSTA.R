@@ -1,30 +1,72 @@
 #' Extract statistics from fitted models
 #'
+#' @description
 #' Extract and calculate various results for fitted models such as BLUEs, BLUPs,
 #' unit errors and heritabilities. For a full list of results that can be
-#' extracted, see Details.\cr\cr
-#' The result(s) to extract are specified in \code{what}. If a single result is
-#' extracted, if possible, this result is returned as a data.frame. If this is
-#' not possible, the result is returned as a list. If multiple results are
-#' extracted at the same time, these are always returned as a list. Where
-#' relevant, this behavior can be changed by specifying \code{asDataFrame}.
-#' Results that are returned as data.frame are marked as such in the data.frame
-#' column in the table in Details.\cr\cr
+#' extracted, see the table below.\cr\cr
+#' The result(s) to extract can be specified in \code{what}.\cr
+#' If a single result is extracted, this result is returned as a
+#' \code{data.frame}, If this is not possible, because the format of the result
+#' is incompatible with the \code{data.frame} format, the result is returned as
+#' a list. E.g. if BLUEs are extracted, the output of the function is a
+#' \code{data.frame} with BLUEs. However if varCompF is extracted, the
+#' output of the function is a \code{list}.\cr\cr
+#' Results that are returned as \code{data.frame} are marked as such in the
+#' asDataFrame column in the table. If the default return value for a result
+#' is a \code{data.frame} that can be overridden by the user by specifying
+#' \code{asDataFrame = FALSE}. When doing so the result will be returned as a
+#' list of data.frames, one per trial. They other way round is not possible.
+#' If a result is returned as a \code{list} according to the table, it cannot
+#' be returned as a \code{data.frame}.\cr
+#' If multiple results are extracted at the same time, these are always
+#' returned as a list.
+#' \cr\cr
 #' Most results can only be calculated if a model is fitted with genotype as
-#' fixed or with genotype as random. E.g. to compute heritabilies a model should
-#' be fitted with genotype as random effect. This is indicated in the list
-#' in Details with "F" and "R" respectively.
+#' fixed or with genotype as random. E.g. to compute heritabilities a model
+#' should be fitted with genotype as random effect. This is indicated in the
+#' table in the column model with "F" and "R" respectively.
 #'
 #' Possible options for \code{what} are:
 #'
-#' ```{r extractOpts, results="as.is", echo=FALSE}
-#' ## Generate table of options for extract from internal data.
-#' optsTab <- statgenSTA:::extractOptions[, c("result", "model", "description")]
-#' optsTab[["data.frame"]] <-
-#' ifelse(statgenSTA:::extractOptions[["asDataFrame"]] == 0, "", "yes")
-#' optsTab <- optsTab[order(optsTab[["model"]]), ]
-#' knitr::kable(optsTab, align = c("llll"), row.names = FALSE)
-#' ```
+## Code below is not working at the moment -
+## See https://github.com/r-lib/roxygen2/issues/1171
+## After the code the output is copied, this looks okay, but is less flexible
+# ```{r extractOpts, results="as.is", echo=FALSE, eval=FALSE}
+# ## Generate table of options for extract from internal data.
+# optsTab <- statgenSTA:::extractOptions[, c("result", "model", "description")]
+# optsTab[["data.frame"]] <-
+# ifelse(statgenSTA:::extractOptions[["asDataFrame"]] == 0, "", "yes")
+# optsTab <- optsTab[order(optsTab[["model"]]), ]
+# knitr::kable(optsTab, align = c("llll"), row.names = FALSE)
+# ```
+#' |result       |model |description                                                                 |asDataFrame |
+#'|:------------|:-----|:---------------------------------------------------------------------------|:-----------|
+#'  |BLUEs        |F     |Best Linear Unbiased Estimators                                             |yes         |
+#'  |seBLUEs      |F     |standard errors of the BLUEs                                                |yes         |
+#'  |ue           |F     |unit errors - only for lme4 and asreml                                      |yes         |
+#'  |varCompF     |F     |variance components for the model with genotype as fixed component          |            |
+#'  |fitted       |F     |fitted values for the model with genotype as fixed component                |yes         |
+#'  |residF       |F     |residuals for the model with genotype as fixed component                    |yes         |
+#'  |stdResF      |F     |standardized residuals for the model with genotype as fixed component       |yes         |
+#'  |wald         |F     |results of the wald test - only for lme4 and asreml                         |            |
+#'  |CV           |F     |Coefficient of Variation - only for lme4 and asreml                         |yes         |
+#'  |rDfF         |F     |residual degrees of freedom for the model with genotype as fixed component  |yes         |
+#'  |sed          |F     |standard error of difference - only for asreml                              |            |
+#'  |lsd          |F     |least significant difference - only for asreml                              |            |
+#'  |BLUPs        |R     |Best Linear Unbiased Predictors                                             |yes         |
+#'  |seBLUPs      |R     |standard errors of the BLUPs                                                |yes         |
+#'  |heritability |R     |broad sense heritability                                                    |yes         |
+#'  |varCompR     |R     |variance components for the model with genotype as random component         |            |
+#'  |varGen       |R     |genetic variance component                                                  |yes         |
+#'  |varErr       |R     |residual variance component                                                 |yes         |
+#'  |varSpat      |R     |spatial variance components - only for SpATS                                |            |
+#'  |rMeans       |R     |fitted values for the model with genotype as random component               |yes         |
+#'  |ranEf        |R     |random genetic effects                                                      |yes         |
+#'  |residR       |R     |residuals for the model with genotype as random component                   |yes         |
+#'  |stdResR      |R     |standardized residuals for the model with genotype as random component      |yes         |
+#'  |rDfR         |R     |residual degrees of freedom for the model with genotype as random component |yes         |
+#'  |effDim       |R     |effective dimensions - only for SpATS                                       |            |
+#'  |ratEffDim    |R     |ratios of the effective dimensions - only for SpATS                         |            |
 #'
 #' @param STA An object of class STA.
 #' @param trials A character vector of trials for which the statistics should be
@@ -49,24 +91,29 @@
 #' @param restoreColNames Should the original column names be restored in the
 #' output of the extracted data?
 #'
-#' @return A list with, per trial for which statistics have been extracted, a
-#' list of those statistics.
+#' @return Depending on the input either a data.frame or a list with, per
+#' trial for which statistics have been extracted, a list of those statistics.
 #'
 #' @seealso \code{\link{fitTD}}
 #'
 #' @examples
 #' ## Fit model using SpATS.
-#' myModel <- fitTD(TD = TDHeat05, design = "res.rowcol", traits = "yield")
+#' modSp <- fitTD(TD = TDHeat05,
+#'                design = "res.rowcol",
+#'                traits = "yield")
 #'
 #' ## Extract all available statistics from the fitted model.
-#' extr <- extractSTA(myModel)
+#' extr <- extractSTA(modSp)
 #'
 #' ## Extract only the BLUEs from the fitted model.
-#' BLUEs <- extractSTA(myModel, what = "BLUEs")
+#' BLUEs <- extractSTA(modSp,
+#'                     what = "BLUEs")
 #'
 #' ## Extract only the BLUEs from the fitted model and keep trial as variable in
 #' ## the output.
-#' BLUEs2 <- extractSTA(myModel, what = "BLUEs", keep = "trial")
+#' BLUEs2 <- extractSTA(modSp,
+#'                      what = "BLUEs",
+#'                      keep = "trial")
 #'
 #' @importFrom utils capture.output
 #' @export
@@ -523,10 +570,10 @@ extractSTALme4 <- function(STA,
     if ("heritability" %in% what) {
       ## Estimate heritability on a line mean basis.
       if (useRepId) {
-        result[["heritability"]] <- varGen /
-          (varGen + (varErr / length(unique(TD$repId))))
+        result[["heritability"]] <- round(varGen /
+          (varGen + (varErr / length(unique(TD$repId)))), 2)
       } else {
-        result[["heritability"]] <- varGen / (varGen + varErr)
+        result[["heritability"]] <- round(varGen / (varGen + varErr), 2)
       }
     }
   }
@@ -794,7 +841,8 @@ extractSTAAsreml <- function(STA,
       } else {
         mrPred$predictions$sed ^ 2
       }
-      unname(1 - mean(sedSq[lower.tri(sedSq)]) / (2 * varGen[[trait]]))
+      round(unname(1 - mean(sedSq[lower.tri(sedSq)]) /
+                     (2 * varGen[[trait]])), 2)
     })
   }
   ## Extract fitted values.

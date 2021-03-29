@@ -1,39 +1,68 @@
-#' Field data for a wheat experiment in Chili
+#' DROPS data set
 #'
-#' A dataset containing field data from an experiment with wheat in Chili
-#' described in detail by Lado (2013). The experiment was performed in 2
-#' locations in Chili with 2 different drought regimes in 2011 and 2012 for
-#' the first location and 1 trial in 2012 for the second location. For 384
-#' genotypes 4 traits were measured in 2011 but in 2012 only grain yield was
-#' measured.
-#'
-#' @format A data.frame with 4000 rows and 11 columns:
+#' This dataset comes from the European Union project DROPS (DROught-tolerant
+#' yielding PlantS). A panel of 256 maize hybrids was grown with two water
+#' regimes (irrigated or rainfed), in seven fields in 2012 and 2013,
+#' respectively, spread along a climatic transect from western to eastern
+#' Europe, plus one site in Chile in 2013. This resulted in 28 experiments
+#' defined as the combination of one year, one site and one water regime, with
+#' two and three repetitions for rainfed and irrigated treatments, respectively.
+#' A detailed environmental characterisation was carried out, with hourly
+#' records of micrometeorological data and soil water status, and associated
+#' with precise measurement of phenology. Grain yield and its components were
+#' measured at the end of the experiment.\cr
+#' 10 experiments have been selected from the full data set, two for each of
+#' the five main environmental scenarios that were identified in the data. The
+#' scenarios have been added to the data as well as a classification of the
+#' genotypes in four genetic groups.\cr\cr
+#' The data.frame contains the raw phenotypic data per experiment
+#' (Location × year × water regime), one value per individual plot and
+#' outliers have been removed.\cr\cr
+#' A data.frame with 6499 rows and 25 columns.\cr
 #' \describe{
-#'   \item{rep}{replicate}
-#'   \item{bl}{block id}
-#'   \item{trt}{genotype}
-#'   \item{row}{row within the field}
-#'   \item{col}{column within the field}
-#'   \item{DH}{Days to Heading, the number of days from sowing till 50\% of
-#'   the spikes emerged}
-#'   \item{GY}{Grain Yield, in tons}
-#'   \item{NKS}{Number of Kernels per Spike, calculated from 25 randomly
-#'   selected spikes per plot}
-#'   \item{TKW}{Thousand Kernel Weight, in grams, calculated from 25 randomly
-#'   selected spikes per plot}
-#'   \item{trial}{trial, a combination of location and year}
-#'   \item{year}{year}
+#' \item{Experiment}{experiments ID described by the three first letters of the
+#' city’s name followed by the year of experiment and the water regime with W
+#' for watered and R for rain-fed.}
+#' \item{Site}{location where the experiment was performed}
+#' \item{year}{year in which the experiment was performed}
+#' \item{plotId}{plot identifier (when available)}
+#' \item{treatment}{targeted water regime}
+#' \item{Code_ID, Variety_ID, Accession_ID}{identifier of the genotype}
+#' \item{Replicate, block}{experimental design factors}
+#' \item{Row, Column}{2D coordinates of each plot}
+#' \item{grain.yield}{genotypic mean for yield adjusted at 15\% grain moisture,
+#' in ton per hectare (t ha^-1)}
+#' \item{grain.number}{genotypic mean for number of grain per square meter}
+#' \item{grain.weight}{genotypic mean for individual grain weight in milligram
+#'  (mg)}
+#' \item{anthesis}{genotypic mean for male flowering (pollen shed), in thermal
+#' time cumulated since emergence (d_20°C)}
+#' \item{silking}{genotypic mean for female flowering (silking emergence), in
+#' thermal time cumulated since emergence (d_20°C)}#'
+#' \item{plant.height}{genotypic mean for plant height, from ground level to
+#' the base of the flag leaf (highest) leaf in centimeter (cm)}
+#' \item{tassel.height}{genotypic mean for plant height including tassel, from
+#' ground level to the highest point of the tassel in centimeter (cm)}
+#' \item{ear.height}{genotypic mean for ear insertion height, from ground level
+#' to ligule of the highest ear leaf in centimeter (cm)}
+#' \item{Lat}{The latitude of the location where the experiment was performed}
+#' \item{Long}{The longitude of the location where the experiment was performed}
+#' \item{scenarioWater}{water scenario for the experiment, well watered (WW) or
+#' water deficit (WD)}
+#' \item{scenarioTemp}{temperature scenario for the experiment, Cool, Hot or
+#' Hot(Day)}
+#' \item{scenarioFull}{the full scenario for the experiment, a combination of
+#' scenarioWater and scenarioTemp}
+#' \item{geneticGroup}{the genetic group to which the genotype belongs}
 #' }
 #'
-#' @source \url{https://www.g3journal.org/content/3/12/2105/}
+#' @source \doi{10.15454/IASSTN}
 #'
-#' @references Lado, Bettina, Ivan Matus, Alejandra Rodríguez, Luis Inostroza,
-#' Jesse Poland, François Belzile, Alejandro del Pozo, Martín Quincke,
-#' Marina Castro, and Jarislav von Zitzewitz. 2013. “Increased Genomic
-#' Prediction Accuracy in Wheat Breeding Through Spatial Adjustment of Field
-#' Trial Data.” G3: Genes|Genomes|Genetics 3 (12): 2105–14.
-#' doi:10.1534/g3.113.007807.
-"wheatChl"
+#' @references Millet, E. J., Pommier, C., et al. (2019). A multi-site
+#' experiment in a network of European fields for assessing the maize yield
+#' response to environmental scenarios (Data set).
+#' \doi{10.15454/IASSTN}
+"dropsRaw"
 
 #' Field data for a wheat experiment in Mexico
 #'
@@ -77,7 +106,7 @@
 #' performed on 211 F2:3 families, each one derived from an original F2 plant.
 #' The families were evaluated under different water and nitrogen regimes
 #' during 1992, 1994 and 1996. In the winter of 1992 three water regimes were
-#' imposed on the trials: well watered (WW), intermediate stress (IS) and severe
+#' imposed on the trials: well watered (NS), intermediate stress (IS) and severe
 #' stress (SS). In the winter of 1994, only the IS and SS trials were available.
 #' Nitrogen availability varied in the 1996 trials, with two low nitrogen
 #' treatments (LN, in winter and summer) and one high-nitrogen treatment
@@ -90,6 +119,8 @@
 #'   \item{trial}{trial, a combination of watering regime, year and nitrogen
 #'   treatment}
 #'   \item{genotype}{genotype}
+#'   \item{regime}{stress level, NS (no water stress), IS (intermediate water
+#'   stress, SS (severe water stress), LN (low nitrogen) or HN (high nitrogen))}
 #'   \item{yld}{grain yield in tons}
 #' }
 #'

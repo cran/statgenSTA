@@ -604,3 +604,45 @@ dfBind <- function(dfList) {
           }), make.row.names = FALSE)
   )
 }
+
+#' Helper function for defining trial colors in plots.
+#'
+#' @noRd
+#' @importFrom grDevices topo.colors
+#' @keywords internal
+defineTrialColors <- function(colors,
+                              n,
+                              default = "black") {
+  if (length(colors) == 0) {
+    ## Defaults to specified default color for one color for trials.
+    ## For more than one colors from statgen.trialColors are used.
+    ## Fall back to topo.colors if number of colors in option is too small.
+    if (n == 1) {
+      colTrial <- default
+    } else if (length(getOption("statgen.trialColors")) >= n) {
+      colTrial <- getOption("statgen.trialColors")[seq_len(n)]
+    } else {
+      colTrial <- topo.colors(n = n, alpha = NULL)
+    }
+  } else {
+    nColTrialArg <- length(colors)
+    if (nColTrialArg != n) {
+      stop("Number of colors provided doesn't match number of trial ",
+           "groups:\n", nColTrialArg, " colors provided, ", n,
+           " groups in data.\n")
+    } else {
+      colTrial <- colors
+    }
+  }
+  return(colTrial)
+}
+
+#' Helper function for extracting geoms from ggplot object
+#'
+#' @noRd
+#' @keywords internal
+getGeoms <- function(p) {
+  vapply(X = p[[1]]$layers, FUN = function(x) {
+    class(x$geom)[1]
+  }, FUN.VALUE = character(1))
+}
