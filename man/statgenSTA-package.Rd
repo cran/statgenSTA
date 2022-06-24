@@ -6,13 +6,7 @@
 \alias{statgenSTA-package}
 \title{statgenSTA: Single Trial Analysis (STA) of Field Trials}
 \description{
-Phenotypic analysis of field trials using mixed models with and 
-    without spatial components. One of a series of statistical genetic packages 
-    for streamlining the analysis of typical plant breeding experiments developed
-    by Biometris.    
-    Some functions have been created to be used in conjunction with the R 
-    package 'asreml' for the 'ASReml' software, which can be obtained upon 
-    purchase from 'VSN' international (<https://www.vsni.co.uk/software/asreml-r>).
+Phenotypic analysis of field trials using mixed models with and without spatial components. One of a series of statistical genetic packages for streamlining the analysis of typical plant breeding experiments developed by Biometris. Some functions have been created to be used in conjunction with the R package 'asreml' for the 'ASReml' software, which can be obtained upon purchase from 'VSN' international (\url{https://vsni.co.uk/software/asreml-r}).
 }
 \seealso{
 Useful links:
@@ -29,7 +23,7 @@ Useful links:
 Other contributors:
 \itemize{
   \item Fred van Eeuwijk (\href{https://orcid.org/0000-0003-3672-2921}{ORCID}) [contributor]
-  \item Martin Boer [contributor]
+  \item Martin Boer (\href{https://orcid.org/0000-0002-1879-4588}{ORCID}) [contributor]
   \item Marcos Malosetti (\href{https://orcid.org/0000-0002-8150-1397}{ORCID}) [contributor]
   \item Daniela Bustos-Korts (\href{https://orcid.org/0000-0003-3827-6726}{ORCID}) [contributor]
   \item Emilie J. Millet (\href{https://orcid.org/0000-0002-2913-4892}{ORCID}) [contributor]

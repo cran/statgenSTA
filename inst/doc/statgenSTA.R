@@ -13,7 +13,7 @@ library(statgenSTA)
 data(dropsRaw)
 
 ## ----createTD---------------------------------------------------------------------------
-## Create a TD object containing for 2012.
+## Create a TD object containing data for 2012.
 dropsTD <- createTD(data = dropsRaw[dropsRaw$year == 2012, ],
                     genotype = "Variety_ID", 
                     trial = "Experiment",
@@ -26,7 +26,7 @@ dropsTD <- createTD(data = dropsRaw[dropsRaw$year == 2012, ],
                     trLong = "Long")
 
 ## ----getMeta----------------------------------------------------------------------------
-## Extract meta data from the TD object. 
+## Extract metadata from the TD object. 
 (dropsMeta <- getMeta(TD = dropsTD))
 
 ## ----setMeta----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ dropsTD <- addTD(TD = dropsTD,
                  trLat = "Lat", 
                  trLong = "Long")
 
-## Inspect the meta data after the extra trial was added.
+## Inspect the metadata after the extra trial was added.
 getMeta(TD = dropsTD)
 
 ## ----TDsum------------------------------------------------------------------------------
