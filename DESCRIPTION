@@ -1,8 +1,8 @@
 Package: statgenSTA
 Type: Package
 Title: Single Trial Analysis (STA) of Field Trials
-Version: 1.0.9
-Date: 2022-06-24
+Version: 1.0.10
+Date: 2022-12-1
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
@@ -59,10 +59,10 @@ Description: Phenotypic analysis of field trials using mixed models with and
 License: GPL
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.2
 Depends: R (>= 3.3)
 Imports: emmeans, ggplot2 (>= 3.3.0), ggrepel, gridExtra, knitr, lme4,
-        mapproj, maps, qtl, scales (>= 1.1.0), SpATS (>= 1.0-10),
+        mapproj, maps, qtl, scales (>= 1.1.0), SpATS (>= 1.0-18),
         xtable
 Suggests: asreml(>= 3.0), rmarkdown, testthat, tibble
 SystemRequirements: pdflatex
@@ -71,7 +71,7 @@ URL: https://biometris.github.io/statgenSTA/index.html,
         https://github.com/Biometris/statgenSTA/
 BugReports: https://github.com/Biometris/statgenSTA/issues
 NeedsCompilation: no
-Packaged: 2022-06-24 13:34:52 UTC; rossu027
+Packaged: 2022-12-01 14:56:25 UTC; rossu027
 Author: Bart-Jan van Rossum [aut, cre]
     (<https://orcid.org/0000-0002-8673-2514>),
   Fred van Eeuwijk [ctb] (<https://orcid.org/0000-0003-3672-2921>),
@@ -86,4 +86,4 @@ Author: Bart-Jan van Rossum [aut, cre]
   Choazhi Zheng [ctb] (<https://orcid.org/0000-0001-6030-3933>)
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2022-06-24 15:00:02 UTC
+Date/Publication: 2022-12-01 16:40:02 UTC
