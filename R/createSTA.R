@@ -127,6 +127,11 @@ summary.STA <- function(object,
                            is.null(object[[trials]]$mRand[[trait]]))) {
       stop("No fitted model found for ", trait, " in ", trials, ".\n")
     }
+    ## Remove possible row/column filler observations.
+    TD <- lapply(X = TD, FUN = function(dat) {
+      dat[genoOrCheck(dat, predicted = "genotype",
+                      useCheckId = hasName(x = dat, name = "checkId")), ]
+    })
     stats <- summary.TD(object = TD, traits = trait)
     ## get predicted means (BLUEs + BLUPs).
     extr <- extractSTA(object, trials = trials, traits = trait)[[trials]]
@@ -134,6 +139,16 @@ summary.STA <- function(object,
     ## merge when using Reduce.
     joinList <- Filter(f = Negate(f = is.null),
                        x = extr[c("BLUEs", "seBLUEs", "BLUPs", "seBLUPs")])
+    ## Combine genotype and columns if needed.
+    joinList <- lapply(X = joinList, FUN = function(dat) {
+      if (hasName(x = dat, name = "checkId")) {
+        dat[["genotype"]] <- ifelse(is.na(dat[["genotype"]]),
+                                    as.character(dat[["checkId"]]),
+                                    as.character(dat[["genotype"]]))
+        dat[["checkId"]] <- NULL
+      }
+      return(dat)
+    })
     meanTab <- joinList[[1]]
     for (i in 2:length(joinList)) {
       meanTab <- merge(meanTab, joinList[[i]], all = TRUE, by = "genotype",

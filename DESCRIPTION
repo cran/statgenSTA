@@ -1,8 +1,8 @@
 Package: statgenSTA
 Type: Package
 Title: Single Trial Analysis (STA) of Field Trials
-Version: 1.0.12
-Date: 2023-11-03
+Version: 1.0.13
+Date: 2024-05-06
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
@@ -71,7 +71,7 @@ URL: https://biometris.github.io/statgenSTA/index.html,
         https://github.com/Biometris/statgenSTA/
 BugReports: https://github.com/Biometris/statgenSTA/issues
 NeedsCompilation: no
-Packaged: 2023-11-03 13:28:10 UTC; rossu027
+Packaged: 2024-05-06 09:20:34 UTC; rossu027
 Author: Bart-Jan van Rossum [aut, cre]
     (<https://orcid.org/0000-0002-8673-2514>),
   Fred van Eeuwijk [ctb] (<https://orcid.org/0000-0003-3672-2921>),
@@ -86,4 +86,4 @@ Author: Bart-Jan van Rossum [aut, cre]
   Choazhi Zheng [ctb] (<https://orcid.org/0000-0001-6030-3933>)
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2023-11-03 14:50:02 UTC
+Date/Publication: 2024-05-06 10:20:03 UTC
