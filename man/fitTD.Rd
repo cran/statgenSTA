@@ -90,6 +90,8 @@ analysis.}
 predicted.}
 \item{sumTab}{A data.frame with a summary table for the spatial models tried
 when \code{engine = "asreml"} and \code{spatial = TRUE}}
+\item{useCheckId}{A boolean indicating if checkId was used when fitting the
+models}
 }
 \description{
 Perform REML analysis given a specific experimental design using either

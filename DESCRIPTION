@@ -1,8 +1,8 @@
 Package: statgenSTA
 Type: Package
 Title: Single Trial Analysis (STA) of Field Trials
-Version: 1.0.13
-Date: 2024-05-06
+Version: 1.0.14
+Date: 2024-10-11
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
@@ -55,11 +55,11 @@ Description: Phenotypic analysis of field trials using mixed models with and
     by Biometris.    
     Some functions have been created to be used in conjunction with the R 
     package 'asreml' for the 'ASReml' software, which can be obtained upon 
-    purchase from 'VSN' international (<https://vsni.co.uk/software/asreml-r>). 
+    purchase from 'VSN' international (<https://vsni.co.uk/software/asreml-r/>). 
 License: GPL
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Depends: R (>= 3.3)
 Imports: emmeans, ggplot2 (>= 3.3.0), ggrepel, gridExtra, knitr, lme4,
         mapproj, maps, qtl, rlang, scales (>= 1.1.0), SpATS (>=
@@ -71,7 +71,7 @@ URL: https://biometris.github.io/statgenSTA/index.html,
         https://github.com/Biometris/statgenSTA/
 BugReports: https://github.com/Biometris/statgenSTA/issues
 NeedsCompilation: no
-Packaged: 2024-05-06 09:20:34 UTC; rossu027
+Packaged: 2024-10-14 07:03:26 UTC; rossu027
 Author: Bart-Jan van Rossum [aut, cre]
     (<https://orcid.org/0000-0002-8673-2514>),
   Fred van Eeuwijk [ctb] (<https://orcid.org/0000-0003-3672-2921>),
@@ -86,4 +86,4 @@ Author: Bart-Jan van Rossum [aut, cre]
   Choazhi Zheng [ctb] (<https://orcid.org/0000-0001-6030-3933>)
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2024-05-06 10:20:03 UTC
+Date/Publication: 2024-10-14 07:40:02 UTC

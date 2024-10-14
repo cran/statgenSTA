@@ -28,45 +28,14 @@
 #'
 #' Possible options for \code{what} are:
 #'
-## Code below is not working at the moment -
-## See https://github.com/r-lib/roxygen2/issues/1171
-## After the code the output is copied, this looks okay, but is less flexible
-# ```{r extractOpts, results="as.is", echo=FALSE, eval=FALSE}
-# ## Generate table of options for extract from internal data.
-# optsTab <- statgenSTA:::extractOptions[, c("result", "model", "description")]
-# optsTab[["data.frame"]] <-
-# ifelse(statgenSTA:::extractOptions[["asDataFrame"]] == 0, "", "yes")
-# optsTab <- optsTab[order(optsTab[["model"]]), ]
-# knitr::kable(optsTab, align = c("llll"), row.names = FALSE)
+#' ```{r extractOpts, results="as.is", echo=FALSE}
+#' ## Generate table of options for extract from internal data.
+#' optsTab <- statgenSTA:::extractOptions[, c("result", "model", "description", "asDataFrame")]
+#' optsTab$asDataFrame <- factor(ifelse(optsTab$asDataFrame == 0, 2, 1),
+#'                               labels = c("yes", ""))
+#' optsTab <- optsTab[order(optsTab[["model"]]), ]
+#' knitr::kable(optsTab, align = "l", row.names = FALSE)
 # ```
-#' |result       |model |description                                                                 |asDataFrame |
-#'|:------------|:-----|:---------------------------------------------------------------------------|:-----------|
-#'  |BLUEs        |F     |Best Linear Unbiased Estimators                                             |yes         |
-#'  |seBLUEs      |F     |standard errors of the BLUEs                                                |yes         |
-#'  |ue           |F     |unit errors - only for lme4 and asreml                                      |yes         |
-#'  |varCompF     |F     |variance components for the model with genotype as fixed component          |            |
-#'  |fitted       |F     |fitted values for the model with genotype as fixed component                |yes         |
-#'  |residF       |F     |residuals for the model with genotype as fixed component                    |yes         |
-#'  |stdResF      |F     |standardized residuals for the model with genotype as fixed component       |yes         |
-#'  |wald         |F     |results of the wald test - only for lme4 and asreml                         |            |
-#'  |CV           |R     |Coefficient of Variation                                                    |yes         |
-#'  |rDfF         |F     |residual degrees of freedom for the model with genotype as fixed component  |yes         |
-#'  |sed          |F     |standard error of difference - only for asreml                              |            |
-#'  |lsd          |F     |least significant difference - only for asreml                              |            |
-#'  |BLUPs        |R     |Best Linear Unbiased Predictors                                             |yes         |
-#'  |seBLUPs      |R     |standard errors of the BLUPs                                                |yes         |
-#'  |heritability |R     |broad sense heritability                                                    |yes         |
-#'  |varCompR     |R     |variance components for the model with genotype as random component         |            |
-#'  |varGen       |R     |genetic variance component                                                  |yes         |
-#'  |varErr       |R     |residual variance component                                                 |yes         |
-#'  |varSpat      |R     |spatial variance components - only for SpATS                                |            |
-#'  |rMeans       |R     |fitted values for the model with genotype as random component               |yes         |
-#'  |ranEf        |R     |random genetic effects                                                      |yes         |
-#'  |residR       |R     |residuals for the model with genotype as random component                   |yes         |
-#'  |stdResR      |R     |standardized residuals for the model with genotype as random component      |yes         |
-#'  |rDfR         |R     |residual degrees of freedom for the model with genotype as random component |yes         |
-#'  |effDim       |R     |effective dimensions - only for SpATS                                       |            |
-#'  |ratEffDim    |R     |ratios of the effective dimensions - only for SpATS                         |            |
 #'
 #' @param STA An object of class STA.
 #' @param trials A character vector of trials for which the statistics should be
@@ -115,6 +84,7 @@
 #'                      what = "BLUEs",
 #'                      keep = "trial")
 #'
+#' @md
 #' @importFrom utils capture.output
 #' @export
 extractSTA <- function(STA,
@@ -154,13 +124,15 @@ extractSTA <- function(STA,
       return(NULL)
     }
     engine <- STATr$engine
+    useCheckId <- STATr$useCheckId
     ## Set useRepId to TRUE when it is used as fixed effect in the model.
     useRepId <- STATr$design %in% c("res.ibd", "res.rowcol", "rcbd")
     ## Extract statistics from fitted model.
     result <- do.call(what = paste0("extractSTA", tools::toTitleCase(engine)),
                       args = list(STA = STATr, traits = traitsTr, what = what,
                                   useRepId = useRepId, keep = keep,
-                                  restore = restoreColNames))
+                                  restore = restoreColNames,
+                                  useCheckId = useCheckId))
     attr(x = result, which = "traits") <- traitsTr
     attr(x = result, which = "design") <- STATr$design
     attr(x = result, which = "engine") <- engine
@@ -208,14 +180,13 @@ extractSTASpATS <- function(STA,
                             what = "all",
                             keep = NULL,
                             useRepId,
-                            restore = FALSE) {
+                            restore = FALSE,
+                            useCheckId = FALSE) {
   mf <- STA$mFix[names(STA$mFix) %in% traits]
   mr <- STA$mRand[names(STA$mRand) %in% traits]
   TD <- STA$TD[[1]]
   renCols <- attr(TD, "renamedCols")
   predicted <- STA$predicted
-  useCheckId <- !is.null(mr) &&
-    "checkId" %in% attr(terms(mr[[1]]$model$fixed), "term.labels")
   whatPred <- c("BLUEs", "seBLUEs", "BLUPs", "seBLUPs", "ranEf")
   what <- extractOptSel(what = what, fixed = !is.null(mf),
                         random = !is.null(mr), engine = "SpATS")
@@ -447,14 +418,13 @@ extractSTALme4 <- function(STA,
                            what = "all",
                            keep = NULL,
                            useRepId,
-                           restore = FALSE) {
+                           restore = FALSE,
+                           useCheckId = FALSE) {
   mf <- STA$mFix[names(STA$mFix) %in% traits]
   mr <- STA$mRand[names(STA$mRand) %in% traits]
   TD <- STA$TD[[1]]
   renCols <- attr(TD, "renamedCols")
   predicted <- STA$predicted
-  useCheckId <- !is.null(mr) &&
-    "checkId" %in% attr(terms(formula(mr[[1]])), "term.labels")
   whatPred <- c("BLUEs", "seBLUEs", "BLUPs", "seBLUPs", "ranEf")
   what <- extractOptSel(what = what, fixed = !is.null(mf),
                         random = !is.null(mr), engine = "lme4")
@@ -683,7 +653,8 @@ extractSTAAsreml <- function(STA,
                              what = "all",
                              keep = NULL,
                              useRepId,
-                             restore = FALSE) {
+                             restore = FALSE,
+                             useCheckId = FALSE) {
   if (!requireNamespace("asreml", quietly = TRUE)) {
     stop("asreml cannot be successfully loaded.\n")
   }
@@ -692,8 +663,6 @@ extractSTAAsreml <- function(STA,
   TD <- STA$TD[[1]]
   renCols <- attr(TD, "renamedCols")
   predicted <- STA$predicted
-  useCheckId <- !is.null(mr) &&
-    "checkId" %in% attr(terms(mr[[1]]$call$fixed), "term.labels")
   whatPred <- c("BLUEs", "seBLUEs", "BLUPs", "seBLUPs", "ranEf")
   what <- extractOptSel(what = what, fixed = !is.null(mf),
                         random = !is.null(mr), engine = "asreml")

@@ -97,6 +97,8 @@ fitTDSpATS <- function(TD,
               "Using default values instead.\n")
     }
   }
+  ## Assure nSeg is divisible by nestDiv.
+  nSeg <- ceiling(nSeg / nestDiv) * nestDiv
   ## Construct formula for fixed part.
   fixedForm <- formula(paste("~",
                              if (useRepIdFix) "repId" else "1",
@@ -195,5 +197,5 @@ fitTDSpATS <- function(TD,
   sumTab <- setNames(vector(mode = "list", length = length(traits)), traits)
   return(list(mRand = mr, mFix = mf, TD = TDOut, traits = traits,
               design = design, spatial = spatial, engine = "SpATS",
-              predicted = "genotype", sumTab = sumTab))
+              predicted = "genotype", sumTab = sumTab, useCheckId = useCheckId))
 }

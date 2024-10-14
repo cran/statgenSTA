@@ -84,13 +84,13 @@ Possible options for \code{what} are:\tabular{llll}{
    residF \tab F \tab residuals for the model with genotype as fixed component \tab yes \cr
    stdResF \tab F \tab standardized residuals for the model with genotype as fixed component \tab yes \cr
    wald \tab F \tab results of the wald test - only for lme4 and asreml \tab  \cr
-   CV \tab R \tab Coefficient of Variation \tab yes \cr
+   CV \tab F \tab Coefficient of Variation \tab yes \cr
    rDfF \tab F \tab residual degrees of freedom for the model with genotype as fixed component \tab yes \cr
    sed \tab F \tab standard error of difference - only for asreml \tab  \cr
    lsd \tab F \tab least significant difference - only for asreml \tab  \cr
    BLUPs \tab R \tab Best Linear Unbiased Predictors \tab yes \cr
    seBLUPs \tab R \tab standard errors of the BLUPs \tab yes \cr
-   heritability \tab R \tab broad sense heritability \tab yes \cr
+   heritability \tab R \tab generalized heritability \tab yes \cr
    varCompR \tab R \tab variance components for the model with genotype as random component \tab  \cr
    varGen \tab R \tab genetic variance component \tab yes \cr
    varErr \tab R \tab residual variance component \tab yes \cr

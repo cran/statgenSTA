@@ -243,8 +243,8 @@ outliers <- outlierSTA(modDropsSp,
 ## ----extractOpts, results="as.is", echo=FALSE, out.width = "\\textwidth"----------------
 ## Generate table of options for extract from internal data.
 optsTab <- statgenSTA:::extractOptions[, c("result", "model", "description", "asDataFrame")]
-optsTab$asDataFrame <- factor(ifelse(optsTab$asDataFrame == 0, 2, 1), 
-                         labels = c("yes", ""))
+optsTab$asDataFrame <- factor(ifelse(optsTab$asDataFrame == 0, 2, 1),
+                              labels = c("yes", ""))
 optsTab <- optsTab[order(optsTab[["model"]]), ]
 knitr::kable(optsTab, align = "l", row.names = FALSE)
 
