@@ -1,8 +1,8 @@
 Package: statgenSTA
 Type: Package
 Title: Single Trial Analysis (STA) of Field Trials
-Version: 1.0.14
-Date: 2024-10-11
+Version: 1.0.15
+Date: 2025-06-24
 Authors@R: c(person(given = "Bart-Jan", 
                     family = "van Rossum", 
                     email = "bart-jan.vanrossum@wur.nl", 
@@ -71,19 +71,20 @@ URL: https://biometris.github.io/statgenSTA/index.html,
         https://github.com/Biometris/statgenSTA/
 BugReports: https://github.com/Biometris/statgenSTA/issues
 NeedsCompilation: no
-Packaged: 2024-10-14 07:03:26 UTC; rossu027
-Author: Bart-Jan van Rossum [aut, cre]
-    (<https://orcid.org/0000-0002-8673-2514>),
-  Fred van Eeuwijk [ctb] (<https://orcid.org/0000-0003-3672-2921>),
-  Martin Boer [ctb] (<https://orcid.org/0000-0002-1879-4588>),
-  Marcos Malosetti [ctb] (<https://orcid.org/0000-0002-8150-1397>),
-  Daniela Bustos-Korts [ctb] (<https://orcid.org/0000-0003-3827-6726>),
-  Emilie J. Millet [ctb] (<https://orcid.org/0000-0002-2913-4892>),
-  Joao Paulo [ctb] (<https://orcid.org/0000-0002-4180-0763>),
-  Maikel Verouden [ctb] (<https://orcid.org/0000-0002-4893-3323>),
-  Willem Kruijer [ctb] (<https://orcid.org/0000-0001-7179-1733>),
-  Ron Wehrens [ctb] (<https://orcid.org/0000-0002-8798-5599>),
-  Choazhi Zheng [ctb] (<https://orcid.org/0000-0001-6030-3933>)
+Packaged: 2025-06-24 12:37:59 UTC; rossu027
+Author: Bart-Jan van Rossum [aut, cre] (ORCID:
+    <https://orcid.org/0000-0002-8673-2514>),
+  Fred van Eeuwijk [ctb] (ORCID: <https://orcid.org/0000-0003-3672-2921>),
+  Martin Boer [ctb] (ORCID: <https://orcid.org/0000-0002-1879-4588>),
+  Marcos Malosetti [ctb] (ORCID: <https://orcid.org/0000-0002-8150-1397>),
+  Daniela Bustos-Korts [ctb] (ORCID:
+    <https://orcid.org/0000-0003-3827-6726>),
+  Emilie J. Millet [ctb] (ORCID: <https://orcid.org/0000-0002-2913-4892>),
+  Joao Paulo [ctb] (ORCID: <https://orcid.org/0000-0002-4180-0763>),
+  Maikel Verouden [ctb] (ORCID: <https://orcid.org/0000-0002-4893-3323>),
+  Willem Kruijer [ctb] (ORCID: <https://orcid.org/0000-0001-7179-1733>),
+  Ron Wehrens [ctb] (ORCID: <https://orcid.org/0000-0002-8798-5599>),
+  Choazhi Zheng [ctb] (ORCID: <https://orcid.org/0000-0001-6030-3933>)
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2024-10-14 07:40:02 UTC
+Date/Publication: 2025-06-24 13:40:02 UTC

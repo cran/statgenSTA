@@ -65,9 +65,9 @@ summary(dropsTD,
         groupBy = "geneticGroup")
 
 ## ----colorOpts, eval=FALSE--------------------------------------------------------------
-#  ## Set default colors for genotypes and trials.
-#  options("statgen.genoColors" = c("blue", "green", "yellow"))
-#  options("statgen.trialColors" = c("red", "brown", "purple"))
+# ## Set default colors for genotypes and trials.
+# options("statgen.genoColors" = c("blue", "green", "yellow"))
+# options("statgen.trialColors" = c("red", "brown", "purple"))
 
 ## ----layoutPlot-------------------------------------------------------------------------
 plot(dropsTD, 
@@ -233,12 +233,12 @@ outliers <- outlierSTA(modDropsSp,
                        commonFactors = "genotype")
 
 ## ----modRep, eval=FALSE-----------------------------------------------------------------
-#  ## Create a report in the current working directory
-#  report(modDropsSp)
-#  ## Create a report for the model with genotype fitted as random.
-#  report(modDropsSp,
-#         outfile = "./myReports/dropsReport.pdf",
-#         what = "random")
+# ## Create a report in the current working directory
+# report(modDropsSp)
+# ## Create a report for the model with genotype fitted as random.
+# report(modDropsSp,
+#        outfile = "./myReports/dropsReport.pdf",
+#        what = "random")
 
 ## ----extractOpts, results="as.is", echo=FALSE, out.width = "\\textwidth"----------------
 ## Generate table of options for extract from internal data.
@@ -272,19 +272,19 @@ fitVals <- extractSTA(STA = modDropsSp,
 head(fitVals)
 
 ## ----STAtoTD, message=FALSE, eval=FALSE-------------------------------------------------
-#  ## Fit a model for all trials with genotype as fixed factor.
-#  modDropsSpTot <- fitTD(TD = dropsTD,
-#                         traits = "grain.yield",
-#                         what = "fixed",
-#                         design = "res.rowcol")
-#  ## Create a TD object containing BLUEs and standard errors of BLUEs.
-#  TDGxE <- STAtoTD(STA = modDropsSpTot,
-#                   what = c("BLUEs", "seBLUEs"))
-#  ## Add weights and water scenario to the output.
-#  TDGxE2 <- STAtoTD(STA = modDropsSpTot,
-#                    what = c("BLUEs", "seBLUEs"),
-#                    keep = "scenarioWater",
-#                    addWt = TRUE)
+# ## Fit a model for all trials with genotype as fixed factor.
+# modDropsSpTot <- fitTD(TD = dropsTD,
+#                        traits = "grain.yield",
+#                        what = "fixed",
+#                        design = "res.rowcol")
+# ## Create a TD object containing BLUEs and standard errors of BLUEs.
+# TDGxE <- STAtoTD(STA = modDropsSpTot,
+#                  what = c("BLUEs", "seBLUEs"))
+# ## Add weights and water scenario to the output.
+# TDGxE2 <- STAtoTD(STA = modDropsSpTot,
+#                   what = c("BLUEs", "seBLUEs"),
+#                   keep = "scenarioWater",
+#                   addWt = TRUE)
 
 ## ----winddown, include = FALSE------------------------------------------------
 options(op)

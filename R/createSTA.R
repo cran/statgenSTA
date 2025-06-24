@@ -301,7 +301,7 @@ print.summary.STA <- function(x,
 #' @param output Should the plot be output to the current device? If
 #' \code{FALSE} only a list of ggplot objects is invisibly returned.
 #'
-#' @return A list containing ggplot objects for the selected plots.
+#' @returns A list containing ggplot objects for the selected plots.
 #'
 #' @examples
 #' ## Run a single trait analysis using SpATS.
@@ -675,7 +675,7 @@ fieldPlot <- function(plotDat,
 #' genotype as fixed or genotype as random factor should be reported. By
 #' default all fitted models in the STA object are reported.
 #'
-#' @return A pdf report and the .tex file and figures folder that can be used
+#' @returns A pdf report and the .tex file and figures folder that can be used
 #' to recreate the report.
 #'
 #' @examples
@@ -744,6 +744,11 @@ report.STA <- function(x,
         next
       }
       for (trait in traitsTr) {
+        if (is.null(modTr[[trial]][[whatMod]][[trait]])) {
+          warning("Model with genotype ", whatTr, " not available for trial ",
+                  trial, " for trait ", trait, ".\nReport skipped.")
+          next
+        }
         outTrt <- gsub(pattern = " ", replacement = "_", x = trait)
         ## report name has to be adapted.
         if (!is.null(outfile)) {
@@ -754,7 +759,8 @@ report.STA <- function(x,
                                         last = outLen - nchar(outExt) - 1),
                               "_", outTr, "_", outTrt, "_", whatTr, ".", outExt)
         } else {
-          outfileTr <- paste0("./modelReport_" , trial, "_", outTr, "_", whatTr,
+          outfileTr <- paste0("./modelReport_" , outTr,
+                              "_", outTrt, "_", whatTr,
                               "_", timeStamp, ".pdf")
         }
         createReport(x = modTr, reportName = "modelReport.Rnw",
